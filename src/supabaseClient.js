@@ -1,11 +1,6 @@
 // ─── supabaseClient.js ────────────────────────────────────────────────────────
 // SETUP: Replace the two values below with your Supabase project credentials.
 // Find them in: Supabase Dashboard → Project Settings → API
-//
-//   SUPABASE_URL  → "Project URL"       e.g. https://abcdefgh.supabase.co
-//   SUPABASE_ANON → "anon / public" key e.g. eyJhbGciOiJIUzI1NiIsInR5cCI6...
-//
-// Install the package first:  npm install @supabase/supabase-js
 // ─────────────────────────────────────────────────────────────────────────────
 
 import { createClient } from "@supabase/supabase-js";
@@ -14,49 +9,27 @@ const SUPABASE_URL = "https://rziapvlbbxjryuimqolo.supabase.co"; // ← replace
 const SUPABASE_ANON =
   "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InJ6aWFwdmxiYnhqcnl1aW1xb2xvIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzI3NjM5MjgsImV4cCI6MjA4ODMzOTkyOH0.GoCLLjqwPV40h_nF9j54g38Zr280jQqqKv1a_owlhwo"; // ← replace
 
-// Credentials are configured - Supabase client ready to use
-// To update credentials, change SUPABASE_URL and SUPABASE_ANON above
-
 export const supabase = createClient(SUPABASE_URL, SUPABASE_ANON);
 
 // ─── FRIENDLY ERROR HELPER ────────────────────────────────────────────────────
-// Converts raw Supabase/network errors into messages users can understand.
 function friendlyError(error) {
   const msg = error?.message || "";
 
-  if (
-    msg.toLowerCase().includes("failed to fetch") ||
-    msg.toLowerCase().includes("networkerror")
-  ) {
-    return new Error(
-      "Cannot connect to the server. Please check:\n" +
-        "1. Your internet connection\n" +
-        "2. That SUPABASE_URL in supabaseClient.js is correct\n" +
-        "3. Your Supabase project is not paused (check the dashboard)",
-    );
+  if (msg.toLowerCase().includes("failed to fetch") || msg.toLowerCase().includes("networkerror")) {
+    return new Error("Cannot connect to the server. Please check your internet or Supabase URL.");
   }
   if (msg.toLowerCase().includes("invalid login credentials")) {
     return new Error("Incorrect email or password. Please try again.");
   }
-  if (
-    msg.toLowerCase().includes("user already registered") ||
-    msg.toLowerCase().includes("already been registered")
-  ) {
-    return new Error(
-      "An account with this email already exists. Please sign in instead.",
-    );
+  if (msg.toLowerCase().includes("user already registered") || msg.toLowerCase().includes("already been registered")) {
+    return new Error("An account with this email already exists. Please sign in instead.");
   }
   if (msg.toLowerCase().includes("email not confirmed")) {
-    return new Error(
-      "Please confirm your email before logging in.\n" +
-        "Tip: In Supabase Dashboard → Authentication → Settings, " +
-        "disable 'Enable email confirmations' during development.",
-    );
+    return new Error("Please confirm your email before logging in.");
   }
   if (msg.toLowerCase().includes("password should be")) {
     return new Error("Password must be at least 6 characters.");
   }
-  // Fallback — return the original message
   return error;
 }
 
@@ -72,15 +45,9 @@ export async function signUp(email, password, firstName, lastName) {
   });
   if (error) throw friendlyError(error);
 
-  // We throw a helpful message so the user knows what to do.
   if (data.user && !data.session) {
-    throw new Error(
-      "Account created! Please check your email to confirm your account before signing in.\n\n" +
-        "To skip this during development: Supabase Dashboard → Authentication → Settings → " +
-        "disable 'Enable email confirmations'.",
-    );
+    throw new Error("Account created! Please check your email to confirm your account before signing in.");
   }
-
   return data.user;
 }
 
@@ -108,62 +75,97 @@ export async function getSession() {
   return buildUserObject(user, meta);
 }
 
-// Shared helper — builds the user shape the rest of the app uses
 function buildUserObject(user, meta) {
   return {
     id: user.id,
     email: user.email,
     firstName: meta.firstName || meta.first_name || "admin",
     lastName: meta.lastName || meta.last_name || "",
-    role: user.email === "admin@email.com" ? "admin" : "user",
+    role: user.email === "admin@gmail.com" ? "admin" : "user",
   };
 }
 
 // ─── JOBS ─────────────────────────────────────────────────────────────────────
 
-export async function fetchJobs() {
+export const fetchJobs = async () => {
+  // Simplified! Now it just grabs everything directly from the jobs table
   const { data, error } = await supabase
-    .from("jobs")
-    .select("*")
-    .order("created_at", { ascending: false });
-  if (error) throw friendlyError(error);
-  return data;
-}
+    .from('jobs')
+    .select('*')
+    .order('created_at', { ascending: false });
 
-export async function saveJob(job) {
-  if (job.id) {
-    const { error } = await supabase
-      .from("jobs")
-      .update({
-        title: job.title,
-        department: job.department,
-        location: job.location,
-        type: job.type,
-        about: job.about,
-        active: job.active,
-        responsibilities: job.responsibilities,
-        requirements: job.requirements,
-      })
-      .eq("id", job.id);
-    if (error) throw friendlyError(error);
-  } else {
-    const { error } = await supabase.from("jobs").insert([
-      {
-        title: job.title,
-        department: job.department,
-        location: job.location,
-        type: job.type,
-        about: job.about,
-        active: job.active ?? true,
-        responsibilities: job.responsibilities,
-        requirements: job.requirements,
-      },
-    ]);
-    if (error) throw friendlyError(error);
+  if (error) throw error;
+  return data;
+};
+
+export const saveJob = async (jobData) => {
+  const {
+    id, title, location, category, about, responsibilities, requirements, active, 
+    itemNumber, dateOfPublication, salaryGrade, noOfPersonNeeded, placeOfAssignment, education, trainingRequirements, experience, eligibility, 
+    monthlySalary, docsReq, competencyReq
+  } = jobData;
+
+  // Bundle everything into one object targeted at your single jobs table
+  const payload = {
+    title, 
+    location, 
+    category, 
+    about, 
+    competencyReq,
+    responsibilities, 
+    requirements, 
+    active: active !== false,
+    itemNumber: itemNumber || null,
+    dateOfPublication: dateOfPublication || null,
+    salaryGrade: salaryGrade || null,
+    noOfPersonNeeded: noOfPersonNeeded || null,
+    placeOfAssignment: placeOfAssignment || null,
+    education: education || null,
+    trainingRequirements: trainingRequirements || null,
+    experience: experience || null,
+    eligibility: eligibility || null,
+    monthlySalary: monthlySalary || null,
+    docsReq: docsReq || null
+  };
+
+  try {
+    if (id) {
+      // --- EDIT EXISTING JOB ---
+      const { data, error } = await supabase
+        .from('jobs')
+        .update(payload)
+        .eq('id', id)
+        .select()
+        .single(); 
+
+      if (error) throw error;
+      return data;
+    } else {
+      // --- INSERT NEW JOB ---
+      const { data, error } = await supabase
+        .from('jobs')
+        .insert([payload])
+        .select()
+        .single();
+
+      if (error) throw error;
+      return data;
+    }
+  } catch (error) {
+    console.error("🛑 Supabase Save Error:", error);
+    
+    if (error.code === 'PGRST116') {
+       alert("Edit blocked! Please check your Supabase Row Level Security (RLS) policies.");
+    } else {
+       alert("Failed to save job. Check console for details.");
+    }
+    throw error;
   }
-}
+};
+
 
 export async function deleteJob(id) {
+  // Simplified! Only needs to delete from the main jobs table now
   const { error } = await supabase.from("jobs").delete().eq("id", id);
   if (error) throw friendlyError(error);
 }
@@ -180,12 +182,13 @@ export async function submitApplication(app) {
     {
       job_id: app.jobId,
       job_title: app.jobTitle,
-      department: app.department,
       location: app.location,
-      type: app.type,
+      category: app.category,
       status: "Submitted",
       applicant_email: app.applicant_email,
       applicant_name: app.applicant_name,
+      worksheet_file: app.worksheet_file || null,
+      applicant_age: app.applicant_age ? Number(app.applicant_age) : null,
       applicant_address: app.applicant_address,
       applicant_status: app.applicant_status,
       applicant_sex: app.applicant_sex,
@@ -201,7 +204,6 @@ export async function submitApplication(app) {
       work_position: app.work_position,
       work_dates: app.work_dates,
       work_employer_name: app.work_employer_name,
-      file_name: app.file_name || null,
     },
   ]);
   if (error) throw friendlyError(error);
@@ -234,6 +236,20 @@ export async function updateApplicationStatus(id, status) {
   if (error) throw friendlyError(error);
 }
 
+export async function updateApplicationSchedule(id, dateString) {
+  const { data, error } = await supabase
+    .from("applications")
+    .update({ 
+      status: "Interview Scheduled", 
+      interview_date: dateString 
+    })
+    .eq("id", id)
+    .select();
+
+  if (error) throw friendlyError(error);
+  return data;
+}
+
 export async function deleteApplication(id) {
   const { error } = await supabase.from("applications").delete().eq("id", id);
   if (error) throw friendlyError(error);
@@ -246,28 +262,29 @@ function normalizeApp(row) {
     id: row.id,
     jobId: row.job_id,
     jobTitle: row.job_title,
-    department: row.department,
     location: row.location,
     type: row.type,
     status: row.status,
     applicantEmail: row.applicant_email,
     applicantName: row.applicant_name,
-    applicantaddress: row.applicantaddress,
-    applicantstatus: row.applicantstatus,
-    applicantSex: row.applicantSex,
-    applicantContact: row.applicantContact,
-    eduSchool: row.eduSchool,
-    eduCourse: row.eduCourse,
-    eduYear: row.eduYear,
-    eduHonors: row.eduHonors,
-    eduGradSchool: row.eduGradSchool,
-    eduGradYear: row.eduGradYear,
-    workTrainings: row.workTrainings,
-    workSkills: row.workSkills,
-    workPosition: row.workPosition,
-    workDates: row.workDDates,
-    workEmployerName: row.workEmployerName,
-    fileName: row.file_name,
+    applicantAge: row.applicant_age,
+    applicantAddress: row.applicant_address,
+    applicantStatus: row.applicant_status,
+    applicantSex: row.applicant_sex,
+    applicantContact: row.applicant_contact,
+    eduSchool: row.edu_school,
+    eduCourse: row.edu_course,
+    eduYear: row.edu_year,
+    eduHonors: row.edu_honors,
+    eduGradSchool: row.edu_grad_school,
+    eduGradYear: row.edu_grad_year,
+    workTrainings: row.work_trainings,
+    workSkills: row.work_skills,
+    workPosition: row.work_position,
+    workDates: row.work_dates,
+    workEmployerName: row.work_employer_name,
+    fileName: row.worksheet_file,
+    interviewDate: row.interview_date, 
     appliedAt: row.applied_at
       ? new Date(row.applied_at).toLocaleDateString("en-PH", {
           year: "numeric",
@@ -277,3 +294,22 @@ function normalizeApp(row) {
       : "",
   };
 }
+
+export const uploadApplicantDocument = async (file) => {
+  if (!file) return null;
+  
+  const fileExt = file.name.split('.').pop();
+  const fileName = `${Date.now()}_${Math.random().toString(36).substring(2, 15)}.${fileExt}`;
+
+  const { data, error } = await supabase.storage
+    .from('applicant_docs')
+    .upload(fileName, file);
+
+  if (error) throw error;
+
+  const { data: publicUrlData } = supabase.storage
+    .from('applicant_docs')
+    .getPublicUrl(fileName);
+
+  return publicUrlData.publicUrl;
+};
