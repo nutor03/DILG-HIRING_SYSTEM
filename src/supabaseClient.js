@@ -102,7 +102,7 @@ export const saveJob = async (jobData) => {
   const {
     id, title, location, category, about, responsibilities, requirements, active, 
     itemNumber, dateOfPublication, salaryGrade, noOfPersonNeeded, placeOfAssignment, education, trainingRequirements, experience, eligibility, 
-    monthlySalary, docsReq, competencyReq
+    monthlySalary, docsReq
   } = jobData;
 
   // Bundle everything into one object targeted at your single jobs table
@@ -111,10 +111,12 @@ export const saveJob = async (jobData) => {
     location, 
     category, 
     about, 
-    competencyReq,
     responsibilities, 
     requirements, 
     active: active !== false,
+    coreComp: jobData.coreComp || null,
+    leadershipComp: jobData.leadershipComp || null,
+    functionalComp: jobData.functionalComp || null,
     itemNumber: itemNumber || null,
     dateOfPublication: dateOfPublication || null,
     salaryGrade: salaryGrade || null,

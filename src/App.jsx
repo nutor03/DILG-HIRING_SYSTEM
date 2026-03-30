@@ -459,7 +459,7 @@ export default function App() {
           </header>
 
           <main id="jobs" className="bg-[#FFFDF0] py-20 px-6">
-            <div className="text-center mb-12">
+            <div className="flex flex-col h-full text-center mb-12">
               <span className="inline-block bg-[#FFD000] text-[#0A1F5C] text-[11px] font-extrabold tracking-[3px] uppercase px-3.5 py-1.5 rounded-sm mb-4 border-l-4 border-[#CC1B1B]">
                 Career Opportunities
               </span>
@@ -512,7 +512,8 @@ export default function App() {
                 filtered.map((job) => (
                   <div
                     key={job.id}
-                    className="group bg-white border-2 border-gray-200 rounded-lg p-6 transition-all duration-200 relative overflow-hidden hover:border-[#FFD000] hover:-translate-x-0.5 hover:-translate-y-0.5"
+                    // 1. ADDED: flex, flex-col, and h-full here
+                    className="group flex flex-col h-full bg-white border-2 border-gray-200 rounded-lg p-6 transition-all duration-200 relative overflow-hidden hover:border-[#FFD000] hover:-translate-x-0.5 hover:-translate-y-0.5"
                     onMouseEnter={(e) =>
                       (e.currentTarget.style.boxShadow = "6px 6px 0 #FFD000")
                     }
@@ -521,6 +522,7 @@ export default function App() {
                     }
                   >
                     <div className="absolute left-0 top-0 bottom-0 w-1 bg-[#FFD000] transition-all duration-200 group-hover:w-[6px] group-hover:bg-[#CC1B1B] " />
+                    
                     <div className="flex justify-between items-start mb-3">
                       <span className="inline-block bg-[#FFF8D6] text-[#0A1F5C] text-[11px] font-bold tracking-[2px] uppercase px-2.5 py-1 rounded-sm border border-[#FFD000]">
                         {job.category}
@@ -530,24 +532,29 @@ export default function App() {
                         {job.location}
                       </span>
                     </div>
+                    
                     <h4
                       className="font-extrabold text-2xl text-[#0A1F5C] uppercase leading-tight group-hover:text-[#CC1B1B] transition-colors mb-1"
                       style={{ fontFamily: "'Barlow Condensed',sans-serif" }}
                     >
                       {job.title}
                     </h4>
-                    <div className="text-gray-400 text-xs font-semibold flex items-center gap-2 mb-2 uppercase">
-                    <span className="flex items-center gap-1">
+                    
+                    {/* 1. Added mt-auto here, changed gap-2 to justify-between, and adjusted margin-bottom to mb-4 */}
+                    <div className="mt-auto text-gray-400 text-xs font-semibold flex items-center justify-between mb-4 uppercase w-full">
+                      <span className="flex items-center gap-1">
                         <Users size={15} />
                         {job.noOfPersonNeeded}  Vacancy {job.noOfPersonNeeded !== 1 ? "" : "Vacancies"}
-                    </span>
-                    <span className="flex items-center gap-1">
+                      </span>
+                      <span className="flex items-center gap-1">
                         <Calendar size={15} />
                         {job.dateOfPublication}
-                    </span>
+                      </span>
                     </div>
+                    
                     <button
                       onClick={() => openApply(job)}
+                      // 2. Removed mt-auto from the button since the div above handles it now
                       className="w-full bg-[#0A1F5C] text-[#FFD000] font-bold text-[15px] tracking-[2px] uppercase py-3 rounded transition-all duration-200 hover:bg-[#CC1B1B] hover:text-white cursor-pointer flex items-center justify-center gap-2"
                       style={{ fontFamily: "'Barlow Condensed',sans-serif" }}
                     >

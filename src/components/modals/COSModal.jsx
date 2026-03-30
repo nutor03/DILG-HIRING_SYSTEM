@@ -1,7 +1,7 @@
 import React, { useState } from "react";
 import {
   MapPin, Clock, ChevronRight, ChevronLeft, Users, Briefcase, 
-  CheckCircle, Upload, X, ClipboardList, GraduationCap, FolderOpen, Tag, User
+  CheckCircle, Upload, X, ClipboardList, GraduationCap, FolderOpen,  User
 } from "lucide-react";
 import { STEP_LABELS, STEP_ICONS, inputCls, labelCls } from "../../utils/constants";
 import { FormCard, ReviewSection } from "../shared/SharedComponents";

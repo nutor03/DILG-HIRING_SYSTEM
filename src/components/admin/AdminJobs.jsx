@@ -1,6 +1,16 @@
 import React, { useState, forwardRef } from "react";
-import { Plus, Search, MapPin, Clock, Edit3, Trash2, AlertTriangle, Save, X, Table } from "lucide-react";
-import { labelCls, inputCls, hideScrollbarCls } from "../../utils/constants";
+import {
+  Plus,
+  Search,
+  MapPin,
+  Edit3,
+  Trash2,
+  AlertTriangle,
+  Save,
+  X,
+  Table,
+} from "lucide-react";
+import { labelCls, inputCls } from "../../utils/constants";
 
 // CALENDAR IMPORTS
 import DatePicker from "react-datepicker";
@@ -12,6 +22,12 @@ function JobFormModal({ job, onSave, onClose }) {
     ...job,
     responsibilities: [...(job.responsibilities || [""])],
     requirements: [...(job.requirements || [""])],
+    // Add this line to ensure itemNumber is always an array
+    itemNumber: Array.isArray(job.itemNumber)
+      ? [...job.itemNumber]
+      : job.itemNumber
+        ? [job.itemNumber]
+        : [""],
   });
 
   const isNew = !job.id;
@@ -30,7 +46,10 @@ function JobFormModal({ job, onSave, onClose }) {
       // Formats to "March 25 - March 30"
       const formattedStart = format(start, "MMMM d");
       const formattedEnd = format(end, "MMMM d");
-      setForm((f) => ({ ...f, dateOfPublication: `${formattedStart} - ${formattedEnd}` }));
+      setForm((f) => ({
+        ...f,
+        dateOfPublication: `${formattedStart} - ${formattedEnd}`,
+      }));
     } else if (!start && !end) {
       setForm((f) => ({ ...f, dateOfPublication: "" }));
     }
@@ -49,15 +68,7 @@ function JobFormModal({ job, onSave, onClose }) {
   ));
   // ----------------------
 
-  const setArr = (key, idx, val) =>
-    setForm((f) => {
-      const arr = [...f[key]];
-      arr[idx] = val;
-      return { ...f, [key]: arr };
-    });
-  const addArr = (key) => setForm((f) => ({ ...f, [key]: [...f[key], ""] }));
-  const delArr = (key, idx) =>
-    setForm((f) => ({ ...f, [key]: f[key].filter((_, i) => i !== idx) }));
+
 
   return (
     <div
@@ -95,13 +106,16 @@ function JobFormModal({ job, onSave, onClose }) {
           <div className="grid grid-cols-1 md:grid-cols-2 gap-5 pb-6 border-b-2 border-gray-100">
             <div className="md:col-span-2">
               <label className={labelCls}>
-                Title of Vacant Position <span className="text-[#CC1B1B]">*</span>
+                Title of Vacant Position{" "}
+                <span className="text-[#CC1B1B]">*</span>
               </label>
               <input
                 className={inputCls}
                 placeholder="e.g. LGOO IV / Information Officer II"
                 value={form.title || ""}
-                onChange={(e) => setForm((f) => ({ ...f, title: e.target.value }))}
+                onChange={(e) =>
+                  setForm((f) => ({ ...f, title: e.target.value }))
+                }
               />
             </div>
             <div>
@@ -112,7 +126,9 @@ function JobFormModal({ job, onSave, onClose }) {
                 className={inputCls}
                 placeholder="e.g. Butuan City"
                 value={form.location || ""}
-                onChange={(e) => setForm((f) => ({ ...f, location: e.target.value }))}
+                onChange={(e) =>
+                  setForm((f) => ({ ...f, location: e.target.value }))
+                }
               />
             </div>
             <div>
@@ -122,9 +138,13 @@ function JobFormModal({ job, onSave, onClose }) {
               <select
                 className={inputCls}
                 value={form.category || ""}
-                onChange={(e) => setForm((f) => ({ ...f, category: e.target.value }))}
+                onChange={(e) =>
+                  setForm((f) => ({ ...f, category: e.target.value }))
+                }
               >
-                <option value="" disabled>Select Job Category</option>
+                <option value="" disabled>
+                  Select Job Category
+                </option>
                 <option value="Plantilla">Plantilla</option>
                 <option value="Contract of Service">Contract of Service</option>
               </select>
@@ -141,18 +161,85 @@ function JobFormModal({ job, onSave, onClose }) {
           {/* PLANTILLA DETAILS */}
           {isPlantilla && (
             <div className="space-y-5 ">
-              <h3 className="text-[14px] font-bold text-[#0A1F5C] uppercase tracking-[2px]">Plantilla Requirements</h3>
+              <h3 className="text-[14px] font-bold text-[#0A1F5C] uppercase tracking-[2px]">
+                Plantilla Requirements
+              </h3>
               <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+                {/* 1. Moved No. of Person Needed FIRST for better UX */}
                 <div>
-                  <label className={labelCls}>Item Number</label>
+                  <label className={labelCls}>No. of Person Needed</label>
                   <input
+                    type="number"
+                    min="1"
                     className={inputCls}
-                    placeholder="e.g. OSEC-DICTB-INFO1-12-2023"
-                    value={form.itemNumber || ""}
-                    onChange={(e) => setForm((f) => ({ ...f, itemNumber: e.target.value }))}
+                    placeholder="e.g. 5"
+                    value={form.noOfPersonNeeded || ""}
+                    onChange={(e) =>
+                      setForm((f) => ({
+                        ...f,
+                        noOfPersonNeeded: e.target.value,
+                      }))
+                    }
                   />
                 </div>
-                
+
+                {/* 2. Dynamically Render Item Number Fields */}
+                {Array.from({
+                  length: Math.max(1, parseInt(form.noOfPersonNeeded) || 1),
+                }).map((_, idx) => (
+                  <div key={`item-num-${idx}`}>
+                    <label className={labelCls}>
+                      Item Number{" "}
+                      {parseInt(form.noOfPersonNeeded) > 1 ? idx + 1 : ""}
+                    </label>
+                    <input
+                      className={inputCls}
+                      placeholder="e.g. OSEC-DICTB-INFO1-12-2023"
+                      value={form.itemNumber?.[idx] || ""}
+                      onChange={(e) => {
+                        const newItems = [...(form.itemNumber || [])];
+                        newItems[idx] = e.target.value;
+                        setForm((f) => ({ ...f, itemNumber: newItems }));
+                      }}
+                    />
+                  </div>
+                ))}
+                <div>
+                  <label className={labelCls}>Salary Grade</label>
+                  <input
+                    className={inputCls}
+                    placeholder="e.g. SG-19"
+                    value={form.salaryGrade || ""}
+                    onChange={(e) =>
+                      setForm((f) => ({ ...f, salaryGrade: e.target.value }))
+                    }
+                  />
+                </div>
+                <div>
+                  <label className={labelCls}>Monthly Salary</label>
+                  <input
+                    className={inputCls}
+                    placeholder="e.g. 50,000"
+                    value={form.monthlySalary || ""}
+                    onChange={(e) =>
+                      setForm((f) => ({ ...f, monthlySalary: e.target.value }))
+                    }
+                  />
+                </div>
+                <div>
+                  <label className={labelCls}>Place Of Assignment</label>
+                  <input
+                    className={inputCls}
+                    placeholder="Bayugan City"
+                    value={form.placeOfAssignment || ""}
+                    onChange={(e) =>
+                      setForm((f) => ({
+                        ...f,
+                        placeOfAssignment: e.target.value,
+                      }))
+                    }
+                  />
+                </div>
                 {/* CALENDAR FOR PLANTILLA */}
                 <div className="flex flex-col">
                   <label className={labelCls}>Date of Publication</label>
@@ -166,111 +253,130 @@ function JobFormModal({ job, onSave, onClose }) {
                     placeholderText="e.g. March 25 - March 30"
                   />
                 </div>
+              </div>
 
-                <div>
-                  <label className={labelCls}>Salary Grade</label>
-                  <input
-                    className={inputCls}
-                    placeholder="e.g. SG-19"
-                    value={form.salaryGrade || ""}
-                    onChange={(e) => setForm((f) => ({ ...f, salaryGrade: e.target.value }))}
-                  />
-                </div>
-                <div>
-                  <label className={labelCls}>Monthly Salary</label>
-                  <input
-                    className={inputCls}
-                    placeholder="e.g. 50,000"
-                    value={form.monthlySalary || ""}
-                    onChange={(e) => setForm((f) => ({ ...f, monthlySalary: e.target.value }))}
-                  />
-                </div>
-                <div>
-                  <label className={labelCls}>No. of Person Needed</label>
-                  <input
-                    className={inputCls}
-                    placeholder="e.g. 5"
-                    value={form.noOfPersonNeeded || ""}
-                    onChange={(e) => setForm((f) => ({ ...f, noOfPersonNeeded: e.target.value }))}
-                  />
-                </div>
-                <div>
-                  <label className={labelCls}>Place Of Assignment</label>
-                  <input
-                    className={inputCls}
-                    placeholder="Bayugan City"
-                    value={form.placeOfAssignment || ""}
-                    onChange={(e) => setForm((f) => ({ ...f, placeOfAssignment: e.target.value }))}
-                  />
-                </div>
-                <div>
-                  <label className={labelCls}>Education</label>
-                  <input
-                    className={inputCls}
-                    placeholder="e.g. Bachelor's Degree"
-                    value={form.education || ""}
-                    onChange={(e) => setForm((f) => ({ ...f, education: e.target.value }))}
-                  />
-                </div>
-                <div>
-                  <label className={labelCls}>Training Requirements</label>
-                  <input
-                    className={inputCls}
-                    placeholder="e.g. 4 hours"
-                    value={form.trainingRequirements || ""}
-                    onChange={(e) => setForm((f) => ({ ...f, trainingRequirements: e.target.value }))}
-                  />
-                </div>
-                <div>
-                  <label className={labelCls}>Experience</label>
-                  <input
-                    className={inputCls}
-                    placeholder="e.g. 5 years"
-                    value={form.experience || ""}
-                    onChange={(e) => setForm((f) => ({ ...f, experience: e.target.value }))}
-                  />
-                </div>
-                <div>
-                  <label className={labelCls}>Eligibility</label>
-                  <input
-                    className={inputCls}
-                    placeholder="e.g. CS Professional"
-                    value={form.eligibility || ""}
-                    onChange={(e) => setForm((f) => ({ ...f, eligibility: e.target.value }))}
-                  />
-                </div>
+              <h3 className="text-[14px] font-bold text-[#0A1F5C] uppercase tracking-[2px]">
+                Qualification standard
+              </h3>
+              <div>
+                <label className={labelCls}>Education</label>
+                <textarea
+                  className={inputCls}
+                  placeholder="e.g. Bachelor's Degree"
+                  value={form.education || ""}
+                  onChange={(e) =>
+                    setForm((f) => ({ ...f, education: e.target.value }))
+                  }
+                />
               </div>
               <div>
+                <label className={labelCls}>Experience</label>
+                <textarea
+                  className={inputCls}
+                  placeholder="e.g. 5 years"
+                  value={form.experience || ""}
+                  onChange={(e) =>
+                    setForm((f) => ({ ...f, experience: e.target.value }))
+                  }
+                />
+              </div>
+              <div>
+                <label className={labelCls}>Training Requirements</label>
+                <textarea
+                  className={inputCls}
+                  placeholder="e.g. 4 hours"
+                  value={form.trainingRequirements || ""}
+                  onChange={(e) =>
+                    setForm((f) => ({
+                      ...f,
+                      trainingRequirements: e.target.value,
+                    }))
+                  }
+                />
+              </div>
+              <div>
+                <label className={labelCls}>Eligibility</label>
+                <textarea
+                  className={inputCls}
+                  placeholder="e.g. CS Professional"
+                  value={form.eligibility || ""}
+                  onChange={(e) =>
+                    setForm((f) => ({ ...f, eligibility: e.target.value }))
+                  }
+                />
+              </div>
+
+              <div>
                 <label className={labelCls}>
-                  Position Description <span className="text-[#CC1B1B]">*</span>
+                 STATEMENT OF DUTIES AND RESPONSIBILITIES <span className="text-[#CC1B1B]">*</span>
                 </label>
                 <textarea
                   className={`${inputCls} h-24 resize-none`}
                   placeholder="Describe the role..."
                   value={form.about || ""}
-                  onChange={(e) => setForm((f) => ({ ...f, about: e.target.value }))}
+                  onChange={(e) =>
+                    setForm((f) => ({ ...f, about: e.target.value }))
+                  }
                 />
               </div>
               <div>
-                <label className={labelCls}>
-                  Competency Requirements <span className="text-[#CC1B1B]">*</span>
-                </label>
-                <textarea
-                  className={`${inputCls} h-24 resize-none`}
-                  placeholder="Describe the role..."
-                  value={form.competencyReq || ""}
-                  onChange={(e) => setForm((f) => ({ ...f, competencyReq: e.target.value }))}
-                />
+                <h3 className="text-[14px] font-bold text-[#0A1F5C] uppercase tracking-[2px] mb-3">
+                  Competency Requirements
+                </h3>
+                <div>
+                  <label className={labelCls}>
+                    Core Competencies <span className="text-[#CC1B1B]">*</span>
+                  </label>
+                  <textarea
+                    className={`${inputCls} h-24 resize-none`}
+                    placeholder="Describe the role..."
+                    value={form.coreComp || ""}
+                    onChange={(e) =>
+                      setForm((f) => ({ ...f, coreComp: e.target.value }))
+                    }
+                  />
+                </div>
+                <div>
+                  <label className={labelCls}>
+                    Leadership Competencies{" "}
+                    <span className="text-[#CC1B1B]">*</span>
+                  </label>
+                  <textarea
+                    className={`${inputCls} h-24 resize-none`}
+                    placeholder="Describe the role..."
+                    value={form.leadershipComp || ""}
+                    onChange={(e) =>
+                      setForm((f) => ({ ...f, leadershipComp: e.target.value }))
+                    }
+                  />
+                </div>
+                <div>
+                  <label className={labelCls}>
+                    Functional Competencies{" "}
+                    <span className="text-[#CC1B1B]">*</span>
+                  </label>
+                  <textarea
+                    className={`${inputCls} h-24 resize-none`}
+                    placeholder="Describe the role..."
+                    value={form.functionalComp || ""}
+                    onChange={(e) =>
+                      setForm((f) => ({ ...f, functionalComp: e.target.value }))
+                    }
+                  />
+                </div>
               </div>
               <div>
                 <label className={labelCls}>
-                  Document Requirements <span className="text-[#CC1B1B]">*</span>
+                  Document Requirements{" "}
+                  <span className="text-[#CC1B1B]">*</span>
                 </label>
                 <textarea
                   className={`${inputCls} h-24 resize-none`}
                   placeholder="Describe the role..."
                   value={form.docsReq || ""}
-                  onChange={(e) => setForm((f) => ({ ...f, docsReq: e.target.value }))}
+                  onChange={(e) =>
+                    setForm((f) => ({ ...f, docsReq: e.target.value }))
+                  }
                 />
               </div>
             </div>
@@ -279,9 +385,10 @@ function JobFormModal({ job, onSave, onClose }) {
           {/* C.O.S. SPECIFIC FORM */}
           {isCOS && (
             <div className="space-y-5 ">
-              <h3 className="text-[14px] font-bold text-[#0A1F5C] uppercase tracking-[2px]">Contract of Service Requirements</h3>
+              <h3 className="text-[14px] font-bold text-[#0A1F5C] uppercase tracking-[2px]">
+                Contract of Service Requirements
+              </h3>
               <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-                
                 {/* CALENDAR FOR COS */}
                 <div className="flex flex-col">
                   <label className={labelCls}>Date of Publication</label>
@@ -302,7 +409,9 @@ function JobFormModal({ job, onSave, onClose }) {
                     className={inputCls}
                     placeholder="e.g. SG-19"
                     value={form.salaryGrade || ""}
-                    onChange={(e) => setForm((f) => ({ ...f, salaryGrade: e.target.value }))}
+                    onChange={(e) =>
+                      setForm((f) => ({ ...f, salaryGrade: e.target.value }))
+                    }
                   />
                 </div>
                 <div>
@@ -311,7 +420,9 @@ function JobFormModal({ job, onSave, onClose }) {
                     className={inputCls}
                     placeholder="e.g. 50,000"
                     value={form.monthlySalary || ""}
-                    onChange={(e) => setForm((f) => ({ ...f, monthlySalary: e.target.value }))}
+                    onChange={(e) =>
+                      setForm((f) => ({ ...f, monthlySalary: e.target.value }))
+                    }
                   />
                 </div>
                 <div>
@@ -320,7 +431,12 @@ function JobFormModal({ job, onSave, onClose }) {
                     className={inputCls}
                     placeholder="e.g. 5"
                     value={form.noOfPersonNeeded || ""}
-                    onChange={(e) => setForm((f) => ({ ...f, noOfPersonNeeded: e.target.value }))}
+                    onChange={(e) =>
+                      setForm((f) => ({
+                        ...f,
+                        noOfPersonNeeded: e.target.value,
+                      }))
+                    }
                   />
                 </div>
                 <div>
@@ -329,7 +445,12 @@ function JobFormModal({ job, onSave, onClose }) {
                     className={inputCls}
                     placeholder="Bayugan City"
                     value={form.placeOfAssignment || ""}
-                    onChange={(e) => setForm((f) => ({ ...f, placeOfAssignment: e.target.value }))}
+                    onChange={(e) =>
+                      setForm((f) => ({
+                        ...f,
+                        placeOfAssignment: e.target.value,
+                      }))
+                    }
                   />
                 </div>
                 <div>
@@ -338,7 +459,9 @@ function JobFormModal({ job, onSave, onClose }) {
                     className={inputCls}
                     placeholder="e.g. Bachelor's Degree"
                     value={form.education || ""}
-                    onChange={(e) => setForm((f) => ({ ...f, education: e.target.value }))}
+                    onChange={(e) =>
+                      setForm((f) => ({ ...f, education: e.target.value }))
+                    }
                   />
                 </div>
                 <div>
@@ -347,7 +470,12 @@ function JobFormModal({ job, onSave, onClose }) {
                     className={inputCls}
                     placeholder="e.g. 4 hours"
                     value={form.trainingRequirements || ""}
-                    onChange={(e) => setForm((f) => ({ ...f, trainingRequirements: e.target.value }))}
+                    onChange={(e) =>
+                      setForm((f) => ({
+                        ...f,
+                        trainingRequirements: e.target.value,
+                      }))
+                    }
                   />
                 </div>
                 <div>
@@ -356,7 +484,9 @@ function JobFormModal({ job, onSave, onClose }) {
                     className={inputCls}
                     placeholder="e.g. 5 years"
                     value={form.experience || ""}
-                    onChange={(e) => setForm((f) => ({ ...f, experience: e.target.value }))}
+                    onChange={(e) =>
+                      setForm((f) => ({ ...f, experience: e.target.value }))
+                    }
                   />
                 </div>
               </div>
@@ -368,29 +498,69 @@ function JobFormModal({ job, onSave, onClose }) {
                   className={`${inputCls} h-24 resize-none`}
                   placeholder="Describe the role..."
                   value={form.about || ""}
-                  onChange={(e) => setForm((f) => ({ ...f, about: e.target.value }))}
+                  onChange={(e) =>
+                    setForm((f) => ({ ...f, about: e.target.value }))
+                  }
                 />
               </div>
               <div>
-                <label className={labelCls}>
-                  Competency Requirements <span className="text-[#CC1B1B]">*</span>
-                </label>
-                <textarea
-                  className={`${inputCls} h-24 resize-none`}
-                  placeholder="Describe the role..."
-                  value={form.competencyReq || ""}
-                  onChange={(e) => setForm((f) => ({ ...f, competencyReq: e.target.value }))}
-                />
+                <h3 className="text-[14px] font-bold text-[#0A1F5C] uppercase tracking-[2px] mb-3">
+                  Competency Requirements
+                </h3>
+                <div>
+                  <label className={labelCls}>
+                    Core Competencies <span className="text-[#CC1B1B]">*</span>
+                  </label>
+                  <textarea
+                    className={`${inputCls} h-24 resize-none`}
+                    placeholder="Describe the role..."
+                    value={form.competencyReq || ""}
+                    onChange={(e) =>
+                      setForm((f) => ({ ...f, competencyReq: e.target.value }))
+                    }
+                  />
+                </div>
+                <div>
+                  <label className={labelCls}>
+                    Leadership Competencies{" "}
+                    <span className="text-[#CC1B1B]">*</span>
+                  </label>
+                  <textarea
+                    className={`${inputCls} h-24 resize-none`}
+                    placeholder="Describe the role..."
+                    value={form.competencyReq || ""}
+                    onChange={(e) =>
+                      setForm((f) => ({ ...f, competencyReq: e.target.value }))
+                    }
+                  />
+                </div>
+                <div>
+                  <label className={labelCls}>
+                    Functional Competencies{" "}
+                    <span className="text-[#CC1B1B]">*</span>
+                  </label>
+                  <textarea
+                    className={`${inputCls} h-24 resize-none`}
+                    placeholder="Describe the role..."
+                    value={form.competencyReq || ""}
+                    onChange={(e) =>
+                      setForm((f) => ({ ...f, competencyReq: e.target.value }))
+                    }
+                  />
+                </div>
               </div>
               <div>
                 <label className={labelCls}>
-                  Document Requirements <span className="text-[#CC1B1B]">*</span>
+                  Document Requirements{" "}
+                  <span className="text-[#CC1B1B]">*</span>
                 </label>
                 <textarea
                   className={`${inputCls} h-24 resize-none`}
                   placeholder="Describe the role..."
                   value={form.docsReq || ""}
-                  onChange={(e) => setForm((f) => ({ ...f, docsReq: e.target.value }))}
+                  onChange={(e) =>
+                    setForm((f) => ({ ...f, docsReq: e.target.value }))
+                  }
                 />
               </div>
             </div>
@@ -422,7 +592,7 @@ export default function AdminJobs({ jobs, onUpdateJobs }) {
   const [showForm, setShowForm] = useState(false);
   const [deleteConfirm, setDeleteConfirm] = useState(null);
   const [search, setSearch] = useState("");
-  
+
   // States for filtering and views
   const [categoryFilter, setCategoryFilter] = useState("All");
   const [isTableView, setIsTableView] = useState(false);
@@ -433,17 +603,19 @@ export default function AdminJobs({ jobs, onUpdateJobs }) {
     category: "",
     responsibilities: [""],
     requirements: [""],
+    itemNumber: [""],
   };
 
   // FILTER LOGIC
   const filtered = jobs.filter((j) => {
-    const matchSearch = 
+    const matchSearch =
       !search ||
       j.title.toLowerCase().includes(search.toLowerCase()) ||
       j.location?.toLowerCase().includes(search.toLowerCase());
-      
-    const matchCategory = categoryFilter === "All" || j.category === categoryFilter;
-    
+
+    const matchCategory =
+      categoryFilter === "All" || j.category === categoryFilter;
+
     return matchSearch && matchCategory;
   });
 
@@ -496,7 +668,6 @@ export default function AdminJobs({ jobs, onUpdateJobs }) {
       </div>
 
       <div className="max-w-6xl mx-auto px-8 py-8">
-        
         {/* UNIFIED FILTER BAR */}
         <div className="bg-white border-2 border-gray-200 rounded-xl p-5 mb-8 flex flex-wrap gap-4 items-end shadow-sm">
           <div className="flex-1 min-w-[200px]">
@@ -504,7 +675,10 @@ export default function AdminJobs({ jobs, onUpdateJobs }) {
               Search Roles
             </label>
             <div className="relative">
-              <Search size={15} className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-400" />
+              <Search
+                size={15}
+                className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-400"
+              />
               <input
                 type="text"
                 placeholder="Search by job title or location..."
@@ -514,14 +688,14 @@ export default function AdminJobs({ jobs, onUpdateJobs }) {
               />
             </div>
           </div>
-          
+
           <div>
             <label className="block text-[11px] font-bold tracking-widest uppercase text-[#0A1F5C] mb-1.5">
               Category
             </label>
-            <select 
-              className="px-4 py-2.5 border-2 border-gray-200 rounded bg-white font-sans text-[#0A1F5C] text-[15px] outline-none transition-all focus:border-[#FFD000] cursor-pointer" 
-              value={categoryFilter} 
+            <select
+              className="px-4 py-2.5 border-2 border-gray-200 rounded bg-white font-sans text-[#0A1F5C] text-[15px] outline-none transition-all focus:border-[#FFD000] cursor-pointer"
+              value={categoryFilter}
               onChange={(e) => setCategoryFilter(e.target.value)}
             >
               <option value="All">All Categories</option>
@@ -529,12 +703,12 @@ export default function AdminJobs({ jobs, onUpdateJobs }) {
               <option value="Contract of Service">Contract of Service</option>
             </select>
           </div>
-          
+
           <div>
             <label className="block text-[11px] font-bold tracking-widest uppercase text-transparent mb-1.5 cursor-default select-none">
               View
             </label>
-            <button 
+            <button
               onClick={() => setIsTableView(!isTableView)}
               className={`px-5 py-2.5 border-2 rounded font-bold text-[13px] tracking-wider uppercase transition-all flex items-center gap-2 cursor-pointer ${isTableView ? "bg-[#0A1F5C] text-[#FFD000] border-[#0A1F5C]" : "bg-white text-[#0A1F5C] border-gray-200 hover:border-[#FFD000]"}`}
             >
@@ -554,26 +728,55 @@ export default function AdminJobs({ jobs, onUpdateJobs }) {
             <table className="w-full text-left border-collapse whitespace-nowrap">
               <thead className="bg-[#0A1F5C] text-[#FFD000]">
                 <tr>
-                  <th className="px-4 py-3 text-[11px] font-bold uppercase tracking-wider sticky left-0 bg-[#0A1F5C] z-10 border-b border-[#FFD000]/20">Actions</th>
-                  <th className="px-4 py-3 text-[11px] font-bold uppercase tracking-wider border-b border-[#FFD000]/20">Status</th>
-                  <th className="px-4 py-3 text-[11px] font-bold uppercase tracking-wider border-b border-[#FFD000]/20">Job Title</th>
-                  <th className="px-4 py-3 text-[11px] font-bold uppercase tracking-wider border-b border-[#FFD000]/20">Category</th>
-                  <th className="px-4 py-3 text-[11px] font-bold uppercase tracking-wider border-b border-[#FFD000]/20">Location</th>
-                  <th className="px-4 py-3 text-[11px] font-bold uppercase tracking-wider border-b border-[#FFD000]/20">Item No. </th>
-                  <th className="px-4 py-3 text-[11px] font-bold uppercase tracking-wider border-b border-[#FFD000]/20">Monthly Salary</th>
-                  <th className="px-4 py-3 text-[11px] font-bold uppercase tracking-wider border-b border-[#FFD000]/20">SG</th>
-                  <th className="px-4 py-3 text-[11px] font-bold uppercase tracking-wider border-b border-[#FFD000]/20">Date Of Publication</th>
-                  <th className="px-4 py-3 text-[11px] font-bold uppercase tracking-wider border-b border-[#FFD000]/20">Education</th>
-                  <th className="px-4 py-3 text-[11px] font-bold uppercase tracking-wider border-b border-[#FFD000]/20">Experience</th>
-                  <th className="px-4 py-3 text-[11px] font-bold uppercase tracking-wider border-b border-[#FFD000]/20">Training</th>
-                  <th className="px-4 py-3 text-[11px] font-bold uppercase tracking-wider border-b border-[#FFD000]/20">Eligibility</th>
+                  <th className="px-4 py-3 text-[11px] font-bold uppercase tracking-wider sticky left-0 bg-[#0A1F5C] z-10 border-b border-[#FFD000]/20">
+                    Actions
+                  </th>
+                  <th className="px-4 py-3 text-[11px] font-bold uppercase tracking-wider border-b border-[#FFD000]/20">
+                    Status
+                  </th>
+                  <th className="px-4 py-3 text-[11px] font-bold uppercase tracking-wider border-b border-[#FFD000]/20">
+                    Job Title
+                  </th>
+                  <th className="px-4 py-3 text-[11px] font-bold uppercase tracking-wider border-b border-[#FFD000]/20">
+                    Category
+                  </th>
+                  <th className="px-4 py-3 text-[11px] font-bold uppercase tracking-wider border-b border-[#FFD000]/20">
+                    Location
+                  </th>
+                  <th className="px-4 py-3 text-[11px] font-bold uppercase tracking-wider border-b border-[#FFD000]/20">
+                    Item No.{" "}
+                  </th>
+                  <th className="px-4 py-3 text-[11px] font-bold uppercase tracking-wider border-b border-[#FFD000]/20">
+                    Monthly Salary
+                  </th>
+                  <th className="px-4 py-3 text-[11px] font-bold uppercase tracking-wider border-b border-[#FFD000]/20">
+                    SG
+                  </th>
+                  <th className="px-4 py-3 text-[11px] font-bold uppercase tracking-wider border-b border-[#FFD000]/20">
+                    Date Of Publication
+                  </th>
+                  <th className="px-4 py-3 text-[11px] font-bold uppercase tracking-wider border-b border-[#FFD000]/20">
+                    Education
+                  </th>
+                  <th className="px-4 py-3 text-[11px] font-bold uppercase tracking-wider border-b border-[#FFD000]/20">
+                    Experience
+                  </th>
+                  <th className="px-4 py-3 text-[11px] font-bold uppercase tracking-wider border-b border-[#FFD000]/20">
+                    Training
+                  </th>
+                  <th className="px-4 py-3 text-[11px] font-bold uppercase tracking-wider border-b border-[#FFD000]/20">
+                    Eligibility
+                  </th>
                 </tr>
               </thead>
               <tbody className="divide-y divide-gray-100 text-[13px] text-gray-700">
-                {filtered.map(job => (
-                  <tr key={job.id} className="hover:bg-gray-50 transition-colors">
+                {filtered.map((job) => (
+                  <tr
+                    key={job.id}
+                    className="hover:bg-gray-50 transition-colors"
+                  >
                     <td className="px-4 py-3 sticky left-0 bg-white group-hover:bg-gray-50 border-r border-gray-100 flex items-center gap-2">
-                      <button 
+                      <button
                         onClick={() => {
                           setEditingJob({
                             ...job,
@@ -581,12 +784,15 @@ export default function AdminJobs({ jobs, onUpdateJobs }) {
                             requirements: [...(job.requirements || [])],
                           });
                           setShowForm(true);
-                        }} 
+                        }}
                         className="p-1.5 bg-[#EEF2FF] text-[#6366F1] rounded hover:bg-[#6366F1] hover:text-white transition-colors"
                       >
                         <Edit3 size={14} />
                       </button>
-                      <button onClick={() => setDeleteConfirm(job.id)} className="p-1.5 bg-red-50 text-red-400 rounded hover:bg-red-500 hover:text-white transition-colors">
+                      <button
+                        onClick={() => setDeleteConfirm(job.id)}
+                        className="p-1.5 bg-red-50 text-red-400 rounded hover:bg-red-500 hover:text-white transition-colors"
+                      >
                         <Trash2 size={14} />
                       </button>
                     </td>
@@ -602,27 +808,56 @@ export default function AdminJobs({ jobs, onUpdateJobs }) {
                         {job.active === false ? "Activate" : "Deactivate"}
                       </button>
                     </td>
-                    <td className="px-4 py-3 font-semibold text-[#0A1F5C]">{job.title}</td>
+                    <td className="px-4 py-3 font-semibold text-[#0A1F5C]">
+                      {job.title}
+                    </td>
                     <td className="px-4 py-3">
                       {job.category ? (
                         <span className="bg-[#EEF2FF] px-2 py-1 rounded text-[11px] font-bold tracking-wider uppercase text-[#0A1F5C] border border-[#0A1F5C]/10">
                           {job.category}
                         </span>
-                      ) : "—"}
+                      ) : (
+                        "—"
+                      )}
                     </td>
                     <td className="px-4 py-3 text-gray-500">{job.location}</td>
-                    
-                    {/* INDIVIDUAL REQUIREMENT CELLS */}
-                    <td className="px-4 py-3 text-gray-500">{job.itemNumber || "—"}</td>
-                    <td className="px-4 py-3 text-gray-500">{job.monthlySalary || "—"}</td>
-                     <td className="px-4 py-3 text-gray-500">{job.salaryGrade || job.salaryGrade || "—"}</td>
-                     <td className="px-4 py-3 text-gray-500">{job.dateOfPublication || "—"}</td>
-                    <td className="px-4 py-3 text-gray-500 truncate max-w-[200px]" title={job.education}>{job.education || "—"}</td>
-                    <td className="px-4 py-3 text-gray-500 truncate max-w-[150px]" title={job.experience}>{job.experience || "—"}</td>
-                    <td className="px-4 py-3 text-gray-500 truncate max-w-[150px]" title={job.trainingRequirements}>{job.trainingRequirements || "—"}</td>
-                    <td className="px-4 py-3 text-gray-500">{job.eligibility || "—"}</td>
-                    
 
+                    {/* INDIVIDUAL REQUIREMENT CELLS */}
+                    <td className="px-4 py-3 text-gray-500">
+                      {Array.isArray(job.itemNumber)
+                        ? job.itemNumber.join(", ")
+                        : job.itemNumber || "—"}
+                    </td>
+                    <td className="px-4 py-3 text-gray-500">
+                      {job.monthlySalary || "—"}
+                    </td>
+                    <td className="px-4 py-3 text-gray-500">
+                      {job.salaryGrade || job.salaryGrade || "—"}
+                    </td>
+                    <td className="px-4 py-3 text-gray-500">
+                      {job.dateOfPublication || "—"}
+                    </td>
+                    <td
+                      className="px-4 py-3 text-gray-500 truncate max-w-[200px]"
+                      title={job.education}
+                    >
+                      {job.education || "—"}
+                    </td>
+                    <td
+                      className="px-4 py-3 text-gray-500 truncate max-w-[150px]"
+                      title={job.experience}
+                    >
+                      {job.experience || "—"}
+                    </td>
+                    <td
+                      className="px-4 py-3 text-gray-500 truncate max-w-[150px]"
+                      title={job.trainingRequirements}
+                    >
+                      {job.trainingRequirements || "—"}
+                    </td>
+                    <td className="px-4 py-3 text-gray-500">
+                      {job.eligibility || "—"}
+                    </td>
                   </tr>
                 ))}
               </tbody>
@@ -644,7 +879,9 @@ export default function AdminJobs({ jobs, onUpdateJobs }) {
                     job.active !== false &&
                     (e.currentTarget.style.boxShadow = "4px 4px 0 #FFD000")
                   }
-                  onMouseLeave={(e) => (e.currentTarget.style.boxShadow = "none")}
+                  onMouseLeave={(e) =>
+                    (e.currentTarget.style.boxShadow = "none")
+                  }
                 >
                   <div className="flex-1 min-w-0">
                     <div className="flex items-center gap-2 mb-1 flex-wrap">

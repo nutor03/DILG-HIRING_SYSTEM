@@ -1,6 +1,6 @@
 import React from 'react';
-import { MapPin, Clock, X, Calendar, Hash, Badge, Tag, Layers, HandCoins, Banknote, Users, Landmark } from 'lucide-react';
-import { hideScrollbarCls } from "../../utils/constants";
+import { X, Tag, HandCoins, Banknote,  Landmark } from 'lucide-react';
+
 
 export default function JobDetailsModal({ job, onClose, onApply }) {
   // Early return if no job is selected
@@ -8,6 +8,21 @@ export default function JobDetailsModal({ job, onClose, onApply }) {
 
   const isPlantilla = job.category === "Plantilla";
   const isCOS = job.category === "Contract of Service";
+
+  // --- PARSING LOGIC FOR ITEM NUMBERS ---
+  let parsedItemNumbers = [];
+  if (Array.isArray(job.itemNumber)) {
+    parsedItemNumbers = job.itemNumber;
+  } else if (typeof job.itemNumber === "string") {
+    try {
+      // Try parsing it in case it was saved as a JSON string
+      const parsed = JSON.parse(job.itemNumber);
+      parsedItemNumbers = Array.isArray(parsed) ? parsed : [job.itemNumber];
+    } catch (e) {
+      // If it's a normal text string, wrap it in an array
+      parsedItemNumbers = [job.itemNumber];
+    }
+  }
 
   return (
     <div className={`fixed inset-0 bg-[#0A1F5C]/80 z-50 flex items-center justify-center p-4 backdrop-blur-sm`}>
@@ -35,9 +50,6 @@ export default function JobDetailsModal({ job, onClose, onApply }) {
           
           <div className="flex flex-wrap gap-3">
             <span className="inline-flex items-center gap-1.5 bg-white border border-gray-200 text-gray-600 text-[12px] font-bold tracking-wider uppercase px-3 py-1.5 rounded shadow-sm">
-              <Tag size={14} className="text-[#CC1B1B]" /> Item No. {job.itemNumber} 
-            </span>
-            <span className="inline-flex items-center gap-1.5 bg-white border border-gray-200 text-gray-600 text-[12px] font-bold tracking-wider uppercase px-3 py-1.5 rounded shadow-sm">
               <Banknote size={14} className="text-[#CC1B1B]" /> SG {job.salaryGrade} 
             </span>
             <span className="inline-flex items-center gap-1.5 bg-white border border-gray-200 text-gray-600 text-[12px] font-bold tracking-wider uppercase px-3 py-1.5 rounded shadow-sm">
@@ -55,9 +67,20 @@ export default function JobDetailsModal({ job, onClose, onApply }) {
           
           {/* Section 1: Position Description */}
           <div className="mb-8">
-            {/* DYNAMIC BLOCK: Plantilla vs COS Specifics */}
+              <div className="flex flex-wrap gap-2 mb-4">
+                {parsedItemNumbers.map((item, idx) => {
+                  if (!item || typeof item !== 'string' || item.trim() === "") return null;
+                  
+                  return (
+                    <span key={`item-${idx}`} className="inline-flex items-center gap-1.5 bg-white border border-gray-200 text-gray-600 text-[12px] font-bold tracking-wider uppercase px-3 py-1.5 rounded shadow-sm">
+                      <Tag size={14} className="text-[#CC1B1B]" /> Item No. {item}
+                    </span>
+                  );
+                })}
+              </div> 
             <div>
               {isPlantilla ? (
+                   
                 <div className="bg-[#EEF2FF] p-5 rounded-lg border border-[#0A1F5C]/10">
                   <h4 className="text-[#0A1F5C] font-bold text-[15px] uppercase tracking-wider mb-3 "> Minimum Requirements</h4>
                   <ul className=" md:grid-cols-2 gap-y-3 gap-x-6 text-[16px] text-gray-700">
@@ -81,24 +104,42 @@ export default function JobDetailsModal({ job, onClose, onApply }) {
           </div>
 
           <h3 className="text-[#0A1F5C] font-black text-[15px] tracking-[2px] uppercase border-b-2 border-[#FFD000] pb-2 mb-4">
-            Position Description
+             STATEMENT OF DUTIES AND RESPONSIBILITIES
           </h3>
-          <p className="text-gray-600 text-sm leading-relaxed whitespace-pre-line mb-5">
+          <p className="text-gray-600 text-[18px] leading-relaxed whitespace-pre-line mb-5">
             {job.about || "No description provided for this role."}
           </p>
-
-          <h3 className="text-[#0A1F5C] font-black text-[15px] tracking-[2px] uppercase border-b-2 border-[#FFD000] pb-2 mb-4">
-            Competency Requirements
-          </h3>
-          <p className="text-gray-600 text-sm leading-relaxed whitespace-pre-line mb-5">
-            {job.competencyReq  || "No description provided for this role."}
-          </p>
-          
+          <div>  
+            <h3 className="text-[#0A1F5C] font-black text-[15px] tracking-[2px] uppercase border-b-2 border-[#FFD000] pb-2 mb-4">
+              Competency Requirements
+            </h3>
+            <div className="mx-2">
+              <h3 className="text-[#0A1F5C] font-black text-[12px] tracking-[2px] uppercase mb-1">
+                Core Competencies
+              </h3>
+              <p className="text-gray-600 text-[15px] leading-relaxed whitespace-pre-line mb-5">
+                {job.coreComp }
+              </p>
+              <h3 className="text-[15px] font-black text-[12px] tracking-[2px] uppercase   mb-1">
+                Leadership Competencies
+              </h3>
+              <p className="text-gray-600 text-[15px] leading-relaxed whitespace-pre-line mb-5">
+                {job.leadershipComp  }
+              </p>
+              
+              <h3 className="text-[#0A1F5C] font-black text-[12px] tracking-[2px] uppercase  mb-1">
+                Functional Competencies
+              </h3>
+              <p className="text-gray-600 text-[15px] leading-relaxed whitespace-pre-line mb-5">
+                {job.functionalComp  }
+              </p>
+            </div>
+          </div>      
           <h3 className="text-[#0A1F5C] font-black text-[15px] tracking-[2px] uppercase border-b-2 border-[#FFD000] pb-2 mb-4">
             Document Requirements
           </h3>
-          <p className="text-gray-600 text-sm leading-relaxed whitespace-pre-line mb-5">
-            {job.docsReq|| "No document requirements provided for this role."}
+          <p className="text-gray-600 text-[15px] leading-relaxed whitespace-pre-line mb-5">
+            {job.docsReq || "No description provided for this role."}
           </p>
         </div>
 
