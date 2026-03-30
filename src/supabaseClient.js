@@ -303,11 +303,7 @@ export const uploadApplicantDocument = async (file) => {
   const fileExt = file.name.split('.').pop();
   const fileName = `${Date.now()}_${Math.random().toString(36).substring(2, 15)}.${fileExt}`;
 
-  const { data, error } = await supabase.storage
-    .from('applicant_docs')
-    .upload(fileName, file);
 
-  if (error) throw error;
 
   const { data: publicUrlData } = supabase.storage
     .from('applicant_docs')

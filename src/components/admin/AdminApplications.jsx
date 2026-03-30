@@ -348,7 +348,7 @@ function DeptSection({ dept, apps, onView, onDelete, onStatusChange, onDownload 
       ) : (
         <div className="divide-y divide-gray-50">
           {apps.map((app) => {
-            const cfg = STATUS_CONFIG[app.status] || STATUS_CONFIG["Submitted"];
+            
             return (
               <div
                 key={app.id}
