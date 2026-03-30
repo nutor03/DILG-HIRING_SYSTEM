@@ -1,10 +1,8 @@
-import emailjs from "@emailjs/browser";
 import React, { useState, useEffect } from "react";
 import {
   MapPin,
   Calendar,
   ChevronRight,
-  ChevronLeft,
   Building2,
   Globe,
   LogIn,
@@ -15,12 +13,7 @@ import {
   Shield,
   User,
   Briefcase,
-  CheckCircle,
-  Upload,
-  X,
   Loader2,
-  GraduationCap,
-  FolderOpen,
 } from "lucide-react";
 
 // Services
@@ -37,8 +30,8 @@ import {
 } from "./supabaseClient";
 
 // Constants & Shared
-import { STEP_LABELS, STEP_ICONS, inputCls, labelCls } from "./utils/constants";
-import { FormCard, ReviewSection } from "./components/shared/SharedComponents";
+
+
 
 // Pages & Modals
 import AuthModal from "./components/auth/AuthModal";
@@ -63,36 +56,6 @@ export default function App() {
   const [selectedDept, setSelectedDept] = useState("All");
   const [selectedJob, setSelectedJob] = useState(null);
   const [isApplying, setIsApplying] = useState(false);
-  const [step, setStep] = useState(1);
-  const [fileName, setFileName] = useState("");
-  const [submitted, setSubmitted] = useState(false);
-  const [formData, setFormData] = useState({
-    lastName: "",
-    firstName: "",
-    mi: "",
-    address: "",
-    status: "",
-    age: 0,
-    sex: "",
-    contact: "",
-    email: "",
-  });
-  const [eduData, setEduData] = useState({
-    school: "",
-    course: "",
-    year: "",
-    honors: "",
-    gradSchool: 0,
-    gradYear: "",
-  });
-  const [workData, setWorkData] = useState({
-    trainings: "",
-    skills: "",
-    position: "",
-    dates: null,
-    employerLast: "",
-    employerFirst: "",
-  });
   const [applications, setApplications] = useState([]);
   const [appLoading, setAppLoading] = useState(false);
   const [showSuccess, setShowSuccess] = useState(false);
@@ -146,7 +109,6 @@ export default function App() {
     if (pendingJob) {
       setSelectedJob(pendingJob);
       setIsApplying(false);
-      setStep(1);
       setPendingJob(null);
     }
   };
@@ -170,43 +132,7 @@ export default function App() {
     setSelectedJob(job);
   };
 
-  const handleSubmitApp = async () => {
-    const app = {
-      jobId: selectedJob.id,
-      jobTitle: selectedJob.title,
-      location: selectedJob.location,
-      category: selectedJob.category,
-      applicant_email: currentUser.email,
-      applicant_name:
-        `${formData.firstName} ${formData.mi} ${formData.lastName}`.trim(),
-      applicant_age: formData.age,
-      applicant_address: formData.address,
-      applicant_status: formData.status,
-      applicant_sex: formData.sex,
-      applicant_contact: formData.contact,
-      edu_school: eduData.school,
-      edu_course: eduData.course,
-      edu_year: eduData.year,
-      edu_honors: eduData.honors,
-      edu_grad_school: eduData.gradSchool,
-      edu_grad_year: eduData.gradYear,
-      work_trainings: workData.trainings,
-      work_skills: workData.skills,
-      work_position: workData.position,
-      work_dates: workData.dates,
-      work_employer_name:
-        `${workData.employerFirst} ${workData.employerLast}`.trim(),
-      worksheet_file: fileName,
-    };
-    try {
-      await submitApplication(app);
-      await loadMyApplications(currentUser.email);
-      setSubmitted(true);
-    } catch (e) {
-      console.error("Failed to submit application:", e);
-      alert("Submission failed. Please try again.");
-    }
-  };
+ 
 
   const updateJobsState = async (action, payload) => {
     try {
@@ -223,36 +149,6 @@ export default function App() {
   const closeModal = () => {
     setSelectedJob(null);
     setIsApplying(false);
-    setStep(1);
-    setSubmitted(false);
-    setFileName("");
-    setFormData({
-      lastName: "",
-      firstName: "",
-      mi: "",
-      address: "",
-      status: "",
-      age: "",
-      sex: "",
-      contact: "",
-      email: "",
-    });
-    setEduData({
-      school: "",
-      course: "",
-      year: "",
-      honors: "",
-      gradSchool: "",
-      gradYear: "",
-    });
-    setWorkData({
-      trainings: "",
-      skills: "",
-      position: "",
-      dates: "",
-      employerLast: "",
-      employerFirst: "",
-    });
   };
 
   const activeJobs = jobs.filter((j) => j.active !== false);
