@@ -123,20 +123,21 @@ function ApplicantModal({
 
               <select
                 value={
-                  ["Approved / Hired", "Rejected"].includes(app.status)
+                  ["Approved / Hired", "Rejected w/ Reason", "Rejected w/ No Reason"].includes(app.status)
                     ? app.status
                     : ""
                 }
                 onChange={(e) => onStatusChange(e.target.value)}
                 className="text-[12px] font-bold px-3 py-1.5 rounded-lg border-2 cursor-pointer outline-none bg-white text-[#0A1F5C] border-gray-200"
               >
-                {!["Approved / Hired", "Rejected"].includes(app.status) && (
+                {!["Approved / Hired", "Rejected w/ Reason", "Rejected w/ No Reason"].includes(app.status) && (
                   <option value="" disabled>
                     Update Status...
                   </option>
                 )}
                 <option value="Approved / Hired">Approved / Hired</option>
-                <option value="Rejected">Rejected</option>
+                <option value="Rejected w/ Reason">Rejected w/ Reason</option>
+                <option value="Rejected w/ No Reason">Rejected w/ No Reason</option>
               </select>
 
               <button
@@ -498,7 +499,7 @@ export default function AdminApplications({ jobs }) {
       "Applicant Name", "Email", "Contact", "Age", "Sex", "Civil Status", "Address",
       "Job Title", "Job Category", "Location", "Status", "Applied Date", "Interview Date",
       "School/University", "Degree/Course", "Year Graduated", "Academic Honors",
-      "Graduate School", "Grad School Year",
+      "Graduate School", "Grad School Year", "Unit Earned",
       "Work Position", "Work Dates", "Employer Name", "Trainings", "Skills",
       "File Name", "File Link"
     ];
@@ -525,6 +526,7 @@ export default function AdminApplications({ jobs }) {
         a.eduHonors || "",
         a.eduGradSchool || "",
         a.eduGradYear || "",
+        a.unitEarn || "",
         a.workPosition || "",
         a.workDates || "",
         a.workEmployerName || "",
@@ -632,8 +634,7 @@ export default function AdminApplications({ jobs }) {
                   <th className="px-4 py-3 text-[11px] font-bold uppercase tracking-wider">Address</th>
                   <th className="px-4 py-3 text-[11px] font-bold uppercase tracking-wider">Education</th>
                   <th className="px-4 py-3 text-[11px] font-bold uppercase tracking-wider">Recent Experience</th>
-                  <th className="px-4 py-3 text-[11px] font-bold uppercase tracking-wider">Application Letter</th>
-                  <th className="px-4 py-3 text-[11px] font-bold uppercase tracking-wider">Worksheet Requirements</th>
+                  <th className="px-4 py-3 text-[11px] font-bold uppercase tracking-wider">Document Requirements</th>
                 </tr>
               </thead>
               <tbody className="divide-y divide-gray-100 text-[13px] text-gray-700">

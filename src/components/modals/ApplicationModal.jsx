@@ -42,17 +42,40 @@ export default function ApplicationModal({
     honors: "",
     gradSchool: "",
     gradYear: "",
+    unitEarn: "",
   });
 
+  // Replace your current workData state with this:
   const [workData, setWorkData] = useState({
-    employerFirst: "",
-    employerLast: "",
-    position: "",
-    dates: "",
-    skills: "",
-    trainings: "",
-    fileName: "",
+    experiences: [
+      { employerFirst: "", employerLast: "", position: "", dates: "", skills: "" },
+    ],
+    appLetterFile: null,
+    appLetterName: "",
+    workExpFile: null,
+    workExpFileName: "",
   });
+
+  const handleExpChange = (index, field, value) => {
+  const updatedExperiences = [...workData.experiences];
+  updatedExperiences[index][field] = value;
+  setWorkData({ ...workData, experiences: updatedExperiences });
+  };
+
+  const addExperience = () => {
+    setWorkData({
+      ...workData,
+      experiences: [
+        ...workData.experiences,
+        { employerFirst: "", employerLast: "", position: "", dates: "", skills: "" },
+      ],
+    });
+  };
+
+  const removeExperience = (index) => {
+    const updatedExperiences = workData.experiences.filter((_, i) => i !== index);
+    setWorkData({ ...workData, experiences: updatedExperiences });
+  };
 
   const inputCls =
     "w-full border-2 border-gray-200 rounded px-4 py-2.5 text-sm outline-none focus:border-[#FFD000] text-[#0A1F5C] transition-colors bg-gray-50 focus:bg-white";
@@ -278,7 +301,7 @@ export default function ApplicationModal({
             <div className="space-y-6 animate-in fade-in slide-in-from-right-4 duration-300">
               <div className="p-5 border-2 border-gray-100 rounded-lg bg-gray-50/50">
                 <h3 className="text-[#0A1F5C] font-black text-[14px] uppercase tracking-wider mb-4 border-b-2 border-[#FFD000] inline-block pb-1">
-                  College Degree
+                  Education
                 </h3>
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mb-4">
                   <div className="md:col-span-2">
@@ -334,8 +357,7 @@ export default function ApplicationModal({
                 <h3 className="text-[#0A1F5C] font-black text-[14px] uppercase tracking-wider mb-4 border-b-2 border-[#FFD000] inline-block pb-1">
                   Graduate Studies (Optional)
                 </h3>
-                <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-                  <div className="md:col-span-2">
+                <div className="mb-4">
                     <label className={labelCls}>School / University</label>
                     <input
                       className={inputCls}
@@ -344,6 +366,19 @@ export default function ApplicationModal({
                         setEduData({ ...eduData, gradSchool: e.target.value })
                       }
                       placeholder="Institution Name"
+                    />
+                  </div>
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                  
+                  <div>
+                    <label className={labelCls}>Unit Earn</label>
+                    <input
+                      className={inputCls}
+                      value={eduData.unitEarn}
+                      onChange={(e) =>
+                        setEduData({ ...eduData, unitEarn: e.target.value })
+                      }
+                      placeholder="e.g. 12 units"
                     />
                   </div>
                   <div>
@@ -363,126 +398,121 @@ export default function ApplicationModal({
           )}
 
           {/* STEP 3: EXPERIENCE & UPLOAD */}
+          {/* STEP 3: EXPERIENCE & UPLOAD */}
           {step === 3 && (
             <div className="space-y-6 animate-in fade-in slide-in-from-right-4 duration-300">
-              <div className="p-5 border-2 border-gray-100 rounded-lg bg-gray-50/50">
-                <h3 className="text-[#0A1F5C] font-black text-[14px] uppercase tracking-wider mb-4 border-b-2 border-[#FFD000] inline-block pb-1">
-                  Recent Work Experience
-                </h3>
-                <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mb-4">
-                  <div>
-                    <label className={labelCls}>Position Title</label>
-                    <input
-                      className={inputCls}
-                      value={workData.position}
-                      onChange={(e) =>
-                        setWorkData({ ...workData, position: e.target.value })
-                      }
-                      placeholder="e.g. IT Officer I"
-                    />
-                  </div>
-                  <div>
-                    <label className={labelCls}>Inclusive Dates</label>
-                    <input
-                      className={inputCls}
-                      value={workData.dates}
-                      onChange={(e) =>
-                        setWorkData({ ...workData, dates: e.target.value })
-                      }
-                      placeholder="Jan 2022 - Present"
-                    />
-                  </div>
-                  <div className="md:col-span-2">
-                    <label className={labelCls}>Employer / Agency Name</label>
-                    <div className="grid grid-cols-2 gap-2">
+              
+              {/* Map through the experiences array */}
+              {workData.experiences.map((exp, index) => (
+                <div key={index} className="p-5 border-2 border-gray-100 rounded-lg bg-gray-50/50 relative">
+                  <h3 className="text-[#0A1F5C] font-black text-[14px] uppercase tracking-wider mb-4 border-b-2 border-[#FFD000] inline-block pb-1">
+                    Work Experience {index + 1}
+                  </h3>
+
+                  {/* Show Remove button if there is more than 1 experience */}
+                  {index > 0 && (
+                    <button
+                      onClick={() => removeExperience(index)}
+                      className="absolute top-5 right-5 text-red-500 hover:text-red-700 text-[11px] font-bold uppercase tracking-wider"
+                    >
+                      <X size={16} />
+                    </button>
+                  )}
+
+                  <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mb-4">
+                    <div>
+                      <label className={labelCls}>Position Title</label>
                       <input
                         className={inputCls}
-                        value={workData.employerFirst}
-                        onChange={(e) =>
-                          setWorkData({
-                            ...workData,
-                            employerFirst: e.target.value,
-                          })
-                        }
-                        placeholder="First Name / Company"
-                      />
-                      <input
-                        className={inputCls}
-                        value={workData.employerLast}
-                        onChange={(e) =>
-                          setWorkData({
-                            ...workData,
-                            employerLast: e.target.value,
-                          })
-                        }
-                        placeholder="Last Name (Optional)"
+                        value={exp.position}
+                        onChange={(e) => handleExpChange(index, "position", e.target.value)}
+                        placeholder="e.g. IT Officer I"
                       />
                     </div>
+                    <div>
+                      <label className={labelCls}>Inclusive Dates</label>
+                      <input
+                        className={inputCls}
+                        value={exp.dates}
+                        onChange={(e) => handleExpChange(index, "dates", e.target.value)}
+                        placeholder="Jan 2022 - Present"
+                      />
+                    </div>
+                    <div className="md:col-span-2">
+                      <label className={labelCls}>Employer / Agency Name</label>
+                      <div className="grid grid-cols-2 gap-2">
+                        <input
+                          className={inputCls}
+                          value={exp.employerFirst}
+                          onChange={(e) => handleExpChange(index, "employerFirst", e.target.value)}
+                          placeholder="First Name / Company"
+                        />
+                        <input
+                          className={inputCls}
+                          value={exp.employerLast}
+                          onChange={(e) => handleExpChange(index, "employerLast", e.target.value)}
+                          placeholder="Last Name (Optional)"
+                        />
+                      </div>
+                    </div>
+                  </div>
+                  <div>
+                    <label className={labelCls}>Relevant Skills & Trainings</label>
+                    <textarea
+                      className={`${inputCls} h-20 resize-none`}
+                      value={exp.skills}
+                      onChange={(e) => handleExpChange(index, "skills", e.target.value)}
+                      placeholder="List your technical skills and relevant seminars attended..."
+                    />
                   </div>
                 </div>
-                <div>
-                  <label className={labelCls}>
-                    Relevant Skills & Trainings
-                  </label>
-                  <textarea
-                    className={`${inputCls} h-20 resize-none`}
-                    value={workData.skills}
-                    onChange={(e) =>
-                      setWorkData({ ...workData, skills: e.target.value })
-                    }
-                    placeholder="List your technical skills and relevant seminars attended..."
+              ))}
+
+              {/* The Add Experience Button */}
+              <button
+                onClick={addExperience}
+                className="bg-[#0A1F5C] text-[#FFD000] font-bold py-2 px-4 rounded-full hover:bg-[#CC1B1B] hover:text-white transition-all mt-3 flex items-center mx-auto w-fit text-sm tracking-wider uppercase"
+              >
+                + Add Another Experience
+              </button>
+
+              {/* --- DOCUMENT UPLOADS --- */}
+              <div>
+                <h3 className="text-[#0A1F5C] font-black text-[14px] uppercase tracking-wider inline-block pb-1">
+                  Application Letter
+                </h3>
+              </div>
+              <div className="p-5 border-2 border-dashed border-[#0A1F5C]/30 rounded-lg bg-[#EEF2FF] text-center">
+                <Upload size={28} className="mx-auto mb-2 text-[#0A1F5C]" />
+                <h3 className="text-[#0A1F5C] font-bold text-sm mb-1">Upload Required Documents</h3>
+                <p className="text-gray-500 text-xs mb-4">Please rename your file DILG_ApplicationLetter_FirstnameLastname.pdf</p>
+                <div className="max-w-xs mx-auto">
+                  <input
+                    type="file"
+                    accept=".pdf,.doc,.docx"
+                    className="w-full text-sm text-gray-500 file:mr-4 file:py-2 file:px-4 file:rounded-full file:border-0 file:text-sm file:font-semibold file:bg-[#0A1F5C] file:text-[#FFD000] hover:file:bg-[#CC1B1B] hover:file:text-white transition-all cursor-pointer"
+                    onChange={(e) => {
+                      const file = e.target.files[0];
+                      setWorkData({
+                        ...workData,
+                        appLetterFile: file,
+                        appLetterName: file ? file.name : "",
+                      });
+                    }}
                   />
                 </div>
               </div>
 
               <div>
-                <h3 className="text-[#0A1F5C] font-black text-[14px] uppercase tracking-wider   inline-block pb-1">
-                  Application Letter
-                </h3>
-              </div>       
-              <div className="p-5 border-2 border-dashed border-[#0A1F5C]/30 rounded-lg bg-[#EEF2FF] text-center">
-                
-                <Upload size={28} className="mx-auto mb-2 text-[#0A1F5C]" />
-                <h3 className="text-[#0A1F5C] font-bold text-sm mb-1">
-                  Upload Required Documents
-                </h3>
-                <p className="text-gray-500 text-xs mb-4">
-                  Please rename your file DILG_ApplicationLetter_FirstnameLastname.pdf
-                </p>
-                <div className="max-w-xs mx-auto">
-                  {/* Replace your old fileName text input with this actual file input */}
-                  <input
-                    type="file"
-                    accept=".pdf,.doc,.docx"
-                    className="w-full text-sm text-gray-500 file:mr-4 file:py-2 file:px-4 file:rounded-full file:border-0 file:text-sm file:font-semibold file:bg-[#0A1F5C] file:text-[#FFD000] hover:file:bg-[#CC1B1B] hover:file:text-white transition-all cursor-pointer"
-                    onChange={(e) => {
-                      const file = e.target.files[0];
-                      setWorkData({
-                        ...workData,
-                        file: file,
-                        fileName: file ? file.name : "",
-                      });
-                    }}
-                  />
-                </div>
-
-                
-              </div>
-               <div>
-                <h3 className="text-[#0A1F5C] font-black text-[14px] uppercase tracking-wider   inline-block pb-1">
+                <h3 className="text-[#0A1F5C] font-black text-[14px] uppercase tracking-wider inline-block pb-1">
                   Work Experience Sheet
                 </h3>
-              </div>    
-               <div className="p-5 border-2 border-dashed border-[#0A1F5C]/30 rounded-lg bg-[#EEF2FF] text-center">
+              </div>
+              <div className="p-5 border-2 border-dashed border-[#0A1F5C]/30 rounded-lg bg-[#EEF2FF] text-center">
                 <Upload size={28} className="mx-auto mb-2 text-[#0A1F5C]" />
-                <h3 className="text-[#0A1F5C] font-bold text-sm mb-1">
-                  Upload Required Documents
-                </h3>
-                <p className="text-gray-500 text-xs mb-4">
-                  Please rename your file DILG_WorkExperienceSheet_FirstnameLastname.pdf
-                </p>
+                <h3 className="text-[#0A1F5C] font-bold text-sm mb-1">Upload Required Documents</h3>
+                <p className="text-gray-500 text-xs mb-4">Please rename your file DILG_WorkExperienceSheet_FirstnameLastname.pdf</p>
                 <div className="max-w-xs mx-auto">
-                  {/* Replace your old fileName text input with this actual file input */}
                   <input
                     type="file"
                     accept=".pdf,.doc,.docx"
@@ -491,8 +521,8 @@ export default function ApplicationModal({
                       const file = e.target.files[0];
                       setWorkData({
                         ...workData,
-                        file: file,
-                        fileName: file ? file.name : "",
+                        workExpFile: file,
+                        workExpFileName: file ? file.name : "",
                       });
                     }}
                   />
@@ -565,6 +595,7 @@ export default function ApplicationModal({
               </div>
 
               {/* Section 3 Review */}
+           
               <div className="border-2 border-gray-100 rounded-lg overflow-hidden">
                 <div className="bg-gray-50 px-5 py-3 border-b border-gray-100 flex justify-between items-center">
                   <h4 className="font-black text-[#0A1F5C] uppercase tracking-wider text-[13px]">
@@ -577,13 +608,27 @@ export default function ApplicationModal({
                     <Edit3 size={12} /> Edit
                   </button>
                 </div>
-                <div className="p-5 bg-white space-y-1">
-                  <ReviewRow label="Recent Role" value={workData.position} />
-                  <ReviewRow
-                    label="Employer"
-                    value={`${workData.employerFirst} ${workData.employerLast}`.trim()}
-                  />
-                  <ReviewRow label="Attached File" value={workData.fileName} />
+                <div className="p-5 bg-white space-y-4">
+                  {workData.experiences.map((exp, index) => (
+                    <div key={index} className="border-b border-gray-100 pb-3 last:border-0 last:pb-0">
+                      <p className="text-[10px] font-bold text-gray-400 uppercase tracking-wider mb-2">
+                        Role {index + 1}
+                      </p>
+                      <div className="space-y-1">
+                        <ReviewRow label="Position" value={exp.position} />
+                        <ReviewRow
+                          label="Employer"
+                          value={`${exp.employerFirst} ${exp.employerLast}`.trim()}
+                        />
+                        <ReviewRow label="Dates" value={exp.dates} />
+                      </div>
+                    </div>
+                  ))}
+                  
+                  <div className="pt-2 border-t border-gray-100 space-y-1">
+                    <ReviewRow label="App Letter" value={workData.appLetterName} />
+                    <ReviewRow label="Work Exp Sheet" value={workData.workExpFileName} />
+                  </div>
                 </div>
               </div>
             </div>

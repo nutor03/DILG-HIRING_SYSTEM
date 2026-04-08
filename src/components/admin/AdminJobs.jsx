@@ -313,6 +313,20 @@ function JobFormModal({ job, onSave, onClose }) {
                 <textarea
                   className={`${inputCls} h-24 resize-none`}
                   placeholder="Describe the role..."
+                  value={form.jobSummary || ""}
+                  onChange={(e) =>
+                    setForm((f) => ({ ...f, jobSummary: e.target.value }))
+                  }
+                />
+              </div>
+
+              <div>
+                <label className={labelCls}>
+                 STATEMENT OF DUTIES AND RESPONSIBILITIES <span className="text-[#CC1B1B]">*</span>
+                </label>
+                <textarea
+                  className={`${inputCls} h-24 resize-none`}
+                  placeholder="Describe the role..."
                   value={form.about || ""}
                   onChange={(e) =>
                     setForm((f) => ({ ...f, about: e.target.value }))
@@ -490,9 +504,24 @@ function JobFormModal({ job, onSave, onClose }) {
                   />
                 </div>
               </div>
+
               <div>
                 <label className={labelCls}>
-                  Position Description <span className="text-[#CC1B1B]">*</span>
+                 STATEMENT OF DUTIES AND RESPONSIBILITIES <span className="text-[#CC1B1B]">*</span>
+                </label>
+                <textarea
+                  className={`${inputCls} h-24 resize-none`}
+                  placeholder="Describe the role..."
+                  value={form.jobSummary || ""}
+                  onChange={(e) =>
+                    setForm((f) => ({ ...f, jobSummary: e.target.value }))
+                  }
+                />
+              </div>
+              
+              <div>
+                <label className={labelCls}>
+                  STATEMENT OF DUTIES AND RESPONSIBILITIES <span className="text-[#CC1B1B]">*</span>
                 </label>
                 <textarea
                   className={`${inputCls} h-24 resize-none`}
