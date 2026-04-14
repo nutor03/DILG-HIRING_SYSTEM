@@ -88,13 +88,12 @@ function buildUserObject(user, meta) {
 // ─── JOBS ─────────────────────────────────────────────────────────────────────
 
 export const fetchJobs = async () => {
-  // Simplified! Now it just grabs everything directly from the jobs table
   const { data, error } = await supabase
     .from('jobs')
     .select('*')
-    .order('created_at', { ascending: false });
-
-  if (error) throw error;
+    .order('created_at', { ascending: false }); // <--- Add this line!
+    // Note: If you don't have a 'created_at' column, you can use 'id' instead.
+    
   return data;
 };
 

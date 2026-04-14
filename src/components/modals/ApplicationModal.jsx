@@ -21,6 +21,31 @@ export default function ApplicationModal({
 }) {
   const [step, setStep] = useState(1);
   const [isSubmitting, setIsSubmitting] = useState(false);
+  const [errors, setErrors] = useState({}); 
+
+  const validateStep = (currentStep) => {
+    let newErrors = {};
+
+    if (currentStep === 1) {
+      if (!formData.firstName.trim()) newErrors.firstName = "First Name is required";
+      if (!formData.lastName.trim()) newErrors.lastName = "Last Name is required";
+      if (!formData.email.trim()) newErrors.email = "Email is required";
+      if (!formData.contact.trim()) newErrors.contact = "Contact is required";
+      if (!formData.address.trim()) newErrors.address = "Complete Address is required";
+      if (!formData.age) newErrors.age = "Age is required";
+      if (!formData.sex) newErrors.sex = "Sex is required";
+      if (!formData.status) newErrors.status = "Civil Status is required";
+    } 
+    
+    if (currentStep === 3) {
+   
+      if (!workData.workExpFile) newErrors.file = "Please upload the required document";
+    }
+
+    setErrors(newErrors);
+
+    return Object.keys(newErrors).length === 0; 
+  };
 
   // Form States
   const [formData, setFormData] = useState({
@@ -82,9 +107,23 @@ export default function ApplicationModal({
   const labelCls =
     "block text-[11px] font-bold text-[#0A1F5C] uppercase tracking-wider mb-1.5";
 
-  const handleNext = () => setStep((prev) => prev + 1);
-  const handleBack = () => setStep((prev) => prev - 1);
-  const jumpToStep = (s) => setStep(s);
+const handleNext = () => {
+    // Only proceed if the current step is valid
+    if (validateStep(step)) {
+      setStep((prev) => prev + 1);
+      setErrors({}); // Clear errors when successfully moving to the next step
+    }
+  };
+
+  const handleBack = () => {
+    setStep((prev) => prev - 1);
+    setErrors({}); // Clear errors when moving back
+  };
+
+  const jumpToStep = (s) => {
+    setErrors({}); // Clear errors when jumping between review steps
+    setStep(s);
+  };
 
   const handleSubmit = async () => {
     setIsSubmitting(true);
@@ -163,6 +202,7 @@ export default function ApplicationModal({
         {/* Scrollable Form Body */}
         <div className="px-8 py-6 overflow-y-auto flex-1 custom-scrollbar">
           {/* STEP 1: PERSONAL INFO */}
+          {/* STEP 1: PERSONAL INFO */}
           {step === 1 && (
             <div className="space-y-4 animate-in fade-in slide-in-from-right-4 duration-300">
               <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
@@ -171,38 +211,43 @@ export default function ApplicationModal({
                     First Name <span className="text-red-500">*</span>
                   </label>
                   <input
-                    className={inputCls}
+                    className={`${inputCls} ${errors.firstName ? "border-red-500 bg-red-50" : ""}`}
                     value={formData.firstName}
-                    onChange={(e) =>
-                      setFormData({ ...formData, firstName: e.target.value })
-                    }
+                    onChange={(e) => {
+                      setFormData({ ...formData, firstName: e.target.value });
+                      if (errors.firstName) setErrors({ ...errors, firstName: null }); // Clear error on type
+                    }}
                     placeholder="Juan"
                   />
+                  {errors.firstName && <p className="text-red-500 text-[10px] mt-1 font-bold">{errors.firstName}</p>}
                 </div>
+                
+                {/* MI is not required, so no error logic needed here */}
                 <div>
                   <label className={labelCls}>M.I.</label>
                   <input
                     className={inputCls}
                     value={formData.mi}
-                    onChange={(e) =>
-                      setFormData({ ...formData, mi: e.target.value })
-                    }
+                    onChange={(e) => setFormData({ ...formData, mi: e.target.value })}
                     placeholder="D."
                     maxLength={2}
                   />
                 </div>
+                
                 <div>
                   <label className={labelCls}>
                     Last Name <span className="text-red-500">*</span>
                   </label>
                   <input
-                    className={inputCls}
+                    className={`${inputCls} ${errors.lastName ? "border-red-500 bg-red-50" : ""}`}
                     value={formData.lastName}
-                    onChange={(e) =>
-                      setFormData({ ...formData, lastName: e.target.value })
-                    }
+                    onChange={(e) => {
+                      setFormData({ ...formData, lastName: e.target.value });
+                      if (errors.lastName) setErrors({ ...errors, lastName: null });
+                    }}
                     placeholder="Dela Cruz"
                   />
+                  {errors.lastName && <p className="text-red-500 text-[10px] mt-1 font-bold">{errors.lastName}</p>}
                 </div>
               </div>
 
@@ -212,71 +257,90 @@ export default function ApplicationModal({
                     Email Address <span className="text-red-500">*</span>
                   </label>
                   <input
-                    className={inputCls}
+                    className={`${inputCls} ${errors.email ? "border-red-500 bg-red-50" : ""}`}
                     type="email"
                     value={formData.email}
-                    onChange={(e) =>
-                      setFormData({ ...formData, email: e.target.value })
-                    }
+                    onChange={(e) => {
+                      setFormData({ ...formData, email: e.target.value });
+                      if (errors.email) setErrors({ ...errors, email: null });
+                    }}
                     disabled={!!currentUser?.email}
                   />
+                  {errors.email && <p className="text-red-500 text-[10px] mt-1 font-bold">{errors.email}</p>}
                 </div>
+                
                 <div>
                   <label className={labelCls}>
                     Contact Number <span className="text-red-500">*</span>
                   </label>
                   <input
-                    className={inputCls}
+                    className={`${inputCls} ${errors.contact ? "border-red-500 bg-red-50" : ""}`}
                     value={formData.contact}
-                    onChange={(e) =>
-                      setFormData({ ...formData, contact: e.target.value })
-                    }
+                    onChange={(e) => {
+                      setFormData({ ...formData, contact: e.target.value });
+                      if (errors.contact) setErrors({ ...errors, contact: null });
+                    }}
                     placeholder="09XX XXX XXXX"
                   />
+                  {errors.contact && <p className="text-red-500 text-[10px] mt-1 font-bold">{errors.contact}</p>}
                 </div>
               </div>
 
               <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
                 <div>
-                  <label className={labelCls}>Age</label>
+                  <label className={labelCls}>
+                    Age <span className="text-red-500">*</span>
+                  </label>
                   <input
-                    className={inputCls}
+                    className={`${inputCls} ${errors.age ? "border-red-500 bg-red-50" : ""}`}
                     type="number"
                     value={formData.age}
-                    onChange={(e) =>
-                      setFormData({ ...formData, age: e.target.value })
-                    }
+                    onChange={(e) => {
+                      setFormData({ ...formData, age: e.target.value });
+                      if (errors.age) setErrors({ ...errors, age: null }); // Clear error
+                    }}
                     placeholder="e.g. 25"
                   />
+                  {errors.age && <p className="text-red-500 text-[10px] mt-1 font-bold">{errors.age}</p>}
                 </div>
+                
                 <div>
-                  <label className={labelCls}>Sex</label>
+                  <label className={labelCls}>
+                    Sex <span className="text-red-500">*</span>
+                  </label>
                   <select
-                    className={inputCls}
+                    className={`${inputCls} ${errors.sex ? "border-red-500 bg-red-50" : ""}`}
                     value={formData.sex}
-                    onChange={(e) =>
-                      setFormData({ ...formData, sex: e.target.value })
-                    }
+                    onChange={(e) => {
+                      setFormData({ ...formData, sex: e.target.value });
+                      if (errors.sex) setErrors({ ...errors, sex: null }); // Clear error
+                    }}
                   >
                     <option value="">Select...</option>
                     <option value="Male">Male</option>
                     <option value="Female">Female</option>
                   </select>
+                  {errors.sex && <p className="text-red-500 text-[10px] mt-1 font-bold">{errors.sex}</p>}
                 </div>
+                
                 <div>
-                  <label className={labelCls}>Civil Status</label>
+                  <label className={labelCls}>
+                    Civil Status <span className="text-red-500">*</span>
+                  </label>
                   <select
-                    className={inputCls}
+                    className={`${inputCls} ${errors.status ? "border-red-500 bg-red-50" : ""}`}
                     value={formData.status}
-                    onChange={(e) =>
-                      setFormData({ ...formData, status: e.target.value })
-                    }
+                    onChange={(e) => {
+                      setFormData({ ...formData, status: e.target.value });
+                      if (errors.status) setErrors({ ...errors, status: null }); // Clear error
+                    }}
                   >
                     <option value="">Select...</option>
                     <option value="Single">Single</option>
                     <option value="Married">Married</option>
                     <option value="Widowed">Widowed</option>
                   </select>
+                  {errors.status && <p className="text-red-500 text-[10px] mt-1 font-bold">{errors.status}</p>}
                 </div>
               </div>
 
@@ -285,13 +349,15 @@ export default function ApplicationModal({
                   Complete Address <span className="text-red-500">*</span>
                 </label>
                 <input
-                  className={inputCls}
+                  className={`${inputCls} ${errors.address ? "border-red-500 bg-red-50" : ""}`}
                   value={formData.address}
-                  onChange={(e) =>
-                    setFormData({ ...formData, address: e.target.value })
-                  }
+                  onChange={(e) => {
+                    setFormData({ ...formData, address: e.target.value });
+                    if (errors.address) setErrors({ ...errors, address: null });
+                  }}
                   placeholder="House/Block No., Street, Barangay, City, Province"
                 />
+                {errors.address && <p className="text-red-500 text-[10px] mt-1 font-bold">{errors.address}</p>}
               </div>
             </div>
           )}
@@ -477,41 +543,16 @@ export default function ApplicationModal({
               </button>
 
               {/* --- DOCUMENT UPLOADS --- */}
-              <div>
-                <h3 className="text-[#0A1F5C] font-black text-[14px] uppercase tracking-wider inline-block pb-1">
-                  Application Letter
-                </h3>
-              </div>
-              <div className="p-5 border-2 border-dashed border-[#0A1F5C]/30 rounded-lg bg-[#EEF2FF] text-center">
-                <Upload size={28} className="mx-auto mb-2 text-[#0A1F5C]" />
-                <h3 className="text-[#0A1F5C] font-bold text-sm mb-1">Upload Required Documents</h3>
-                <p className="text-gray-500 text-xs mb-4">Please rename your file DILG_ApplicationLetter_FirstnameLastname.pdf</p>
-                <div className="max-w-xs mx-auto">
-                  <input
-                    type="file"
-                    accept=".pdf,.doc,.docx"
-                    className="w-full text-sm text-gray-500 file:mr-4 file:py-2 file:px-4 file:rounded-full file:border-0 file:text-sm file:font-semibold file:bg-[#0A1F5C] file:text-[#FFD000] hover:file:bg-[#CC1B1B] hover:file:text-white transition-all cursor-pointer"
-                    onChange={(e) => {
-                      const file = e.target.files[0];
-                      setWorkData({
-                        ...workData,
-                        appLetterFile: file,
-                        appLetterName: file ? file.name : "",
-                      });
-                    }}
-                  />
-                </div>
-              </div>
 
               <div>
                 <h3 className="text-[#0A1F5C] font-black text-[14px] uppercase tracking-wider inline-block pb-1">
-                  Work Experience Sheet
+                  Document requirements (Please save all documents in a single PDF file.)
                 </h3>
               </div>
               <div className="p-5 border-2 border-dashed border-[#0A1F5C]/30 rounded-lg bg-[#EEF2FF] text-center">
                 <Upload size={28} className="mx-auto mb-2 text-[#0A1F5C]" />
                 <h3 className="text-[#0A1F5C] font-bold text-sm mb-1">Upload Required Documents</h3>
-                <p className="text-gray-500 text-xs mb-4">Please rename your file DILG_WorkExperienceSheet_FirstnameLastname.pdf</p>
+                <p className="text-gray-500 text-xs mb-4">Please rename your file DILG_Caraga_FirstnameLastname.pdf</p>
                 <div className="max-w-xs mx-auto">
                   <input
                     type="file"
@@ -625,9 +666,8 @@ export default function ApplicationModal({
                     </div>
                   ))}
                   
-                  <div className="pt-2 border-t border-gray-100 space-y-1">
-                    <ReviewRow label="App Letter" value={workData.appLetterName} />
-                    <ReviewRow label="Work Exp Sheet" value={workData.workExpFileName} />
+                  <div className="pt-2  space-y-1">
+                    <ReviewRow label="Document Requirements" value={workData.workExpFileName} />
                   </div>
                 </div>
               </div>

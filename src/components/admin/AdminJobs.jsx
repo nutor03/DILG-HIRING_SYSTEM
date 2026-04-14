@@ -18,21 +18,53 @@ import "react-datepicker/dist/react-datepicker.css";
 import { format } from "date-fns";
 
 function JobFormModal({ job, onSave, onClose }) {
+  // 1. Add this helper function to safely parse stringified arrays
+  const parseArrayField = (data) => {
+    if (Array.isArray(data)) return [...data];
+    if (typeof data === "string") {
+      try {
+        // Attempt to parse stringified arrays like '["2345","567"]'
+        const parsed = JSON.parse(data);
+        if (Array.isArray(parsed)) return parsed;
+      } catch (e) {
+        // If it fails to parse, treat it as a single standard string
+      }
+      return data ? [data] : [""];
+    }
+    return [""];
+  };
+
+  // 2. Update your state initialization to use the helper
   const [form, setForm] = useState({
     ...job,
     responsibilities: [...(job.responsibilities || [""])],
     requirements: [...(job.requirements || [""])],
-    // Add this line to ensure itemNumber is always an array
-    itemNumber: Array.isArray(job.itemNumber)
-      ? [...job.itemNumber]
-      : job.itemNumber
-        ? [job.itemNumber]
-        : [""],
+    itemNumber: parseArrayField(job.itemNumber),
+    placeOfAssignment: parseArrayField(job.placeOfAssignment),
   });
+
+  // --- COMPETENCY TOGGLE STATE ---
+  const [selectedComps, setSelectedComps] = useState({
+    core: !!job.coreComp,
+    leadership: !!job.leadershipComp,
+    functional: !!job.functionalComp,
+  });
+
+  const handleCompToggle = (compType, compKey) => {
+    setSelectedComps((prev) => {
+      const isChecked = !prev[compType];
+      // If unchecked, optionally clear the data from the form so it doesn't save hidden data
+      if (!isChecked) {
+        setForm((f) => ({ ...f, [compKey]: "" }));
+      }
+      return { ...prev, [compType]: isChecked };
+    });
+  };
 
   const isNew = !job.id;
   const isPlantilla = form.category === "Plantilla";
   const isCOS = form.category === "Contract of Service";
+
 
   // --- CALENDAR LOGIC ---
   const [dateRange, setDateRange] = useState([null, null]);
@@ -43,7 +75,6 @@ function JobFormModal({ job, onSave, onClose }) {
     const [start, end] = update;
 
     if (start && end) {
-      // Formats to "March 25 - March 30"
       const formattedStart = format(start, "MMMM d");
       const formattedEnd = format(end, "MMMM d");
       setForm((f) => ({
@@ -55,7 +86,6 @@ function JobFormModal({ job, onSave, onClose }) {
     }
   };
 
-  // Custom Input forces the calendar to pop up and stops manual typing
   const CustomDateInput = forwardRef(({ onClick, placeholder }, ref) => (
     <input
       className={inputCls}
@@ -67,8 +97,6 @@ function JobFormModal({ job, onSave, onClose }) {
     />
   ));
   // ----------------------
-
-
 
   return (
     <div
@@ -151,7 +179,6 @@ function JobFormModal({ job, onSave, onClose }) {
             </div>
           </div>
 
-          {/* Warning if no category is selected on an old job */}
           {!isPlantilla && !isCOS && (
             <div className="p-4 bg-blue-50 text-blue-700 rounded-lg text-sm text-center border border-blue-100 font-medium">
               Please select a Job Category above to view specific details.
@@ -165,13 +192,13 @@ function JobFormModal({ job, onSave, onClose }) {
                 Plantilla Requirements
               </h3>
               <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-                {/* 1. Moved No. of Person Needed FIRST for better UX */}
-                <div>
+                
+                <div className="md:col-span-3 mb-2">
                   <label className={labelCls}>No. of Person Needed</label>
                   <input
                     type="number"
                     min="1"
-                    className={inputCls}
+                    className={`${inputCls} max-w-[200px]`}
                     placeholder="e.g. 5"
                     value={form.noOfPersonNeeded || ""}
                     onChange={(e) =>
@@ -183,27 +210,46 @@ function JobFormModal({ job, onSave, onClose }) {
                   />
                 </div>
 
-                {/* 2. Dynamically Render Item Number Fields */}
+                {/* DYNAMIC PAIR: Item Number + Place of Assignment */}
                 {Array.from({
                   length: Math.max(1, parseInt(form.noOfPersonNeeded) || 1),
                 }).map((_, idx) => (
-                  <div key={`item-num-${idx}`}>
-                    <label className={labelCls}>
-                      Item Number{" "}
-                      {parseInt(form.noOfPersonNeeded) > 1 ? idx + 1 : ""}
-                    </label>
-                    <input
-                      className={inputCls}
-                      placeholder="e.g. OSEC-DICTB-INFO1-12-2023"
-                      value={form.itemNumber?.[idx] || ""}
-                      onChange={(e) => {
-                        const newItems = [...(form.itemNumber || [])];
-                        newItems[idx] = e.target.value;
-                        setForm((f) => ({ ...f, itemNumber: newItems }));
-                      }}
-                    />
+                  <div key={`plantilla-item-${idx}`} className="md:col-span-3 grid grid-cols-1 md:grid-cols-2 gap-4 bg-gray-50 p-4 rounded-xl border border-gray-200">
+                    <div>
+                      <label className={labelCls}>
+                        Item Number{" "}
+                        {parseInt(form.noOfPersonNeeded) > 1 ? idx + 1 : ""}
+                      </label>
+                      <input
+                        className={inputCls}
+                        placeholder="e.g. OSEC-DICTB-INFO1-12-2023"
+                        value={form.itemNumber?.[idx] || ""}
+                        onChange={(e) => {
+                          const newItems = [...(form.itemNumber || [])];
+                          newItems[idx] = e.target.value;
+                          setForm((f) => ({ ...f, itemNumber: newItems }));
+                        }}
+                      />
+                    </div>
+                    <div>
+                      <label className={labelCls}>
+                        Place Of Assignment{" "}
+                        {parseInt(form.noOfPersonNeeded) > 1 ? idx + 1 : ""}
+                      </label>
+                      <input
+                        className={inputCls}
+                        placeholder="e.g. Bayugan City"
+                        value={form.placeOfAssignment?.[idx] || ""}
+                        onChange={(e) => {
+                          const newPlaces = [...(form.placeOfAssignment || [])];
+                          newPlaces[idx] = e.target.value;
+                          setForm((f) => ({ ...f, placeOfAssignment: newPlaces }));
+                        }}
+                      />
+                    </div>
                   </div>
                 ))}
+
                 <div>
                   <label className={labelCls}>Salary Grade</label>
                   <input
@@ -226,21 +272,6 @@ function JobFormModal({ job, onSave, onClose }) {
                     }
                   />
                 </div>
-                <div>
-                  <label className={labelCls}>Place Of Assignment</label>
-                  <input
-                    className={inputCls}
-                    placeholder="Bayugan City"
-                    value={form.placeOfAssignment || ""}
-                    onChange={(e) =>
-                      setForm((f) => ({
-                        ...f,
-                        placeOfAssignment: e.target.value,
-                      }))
-                    }
-                  />
-                </div>
-                {/* CALENDAR FOR PLANTILLA */}
                 <div className="flex flex-col">
                   <label className={labelCls}>Date of Publication</label>
                   <DatePicker
@@ -255,7 +286,7 @@ function JobFormModal({ job, onSave, onClose }) {
                 </div>
               </div>
 
-              <h3 className="text-[14px] font-bold text-[#0A1F5C] uppercase tracking-[2px]">
+              <h3 className="text-[14px] font-bold text-[#0A1F5C] uppercase tracking-[2px] pt-4">
                 Qualification standard
               </h3>
               <div>
@@ -313,70 +344,96 @@ function JobFormModal({ job, onSave, onClose }) {
                 <textarea
                   className={`${inputCls} h-24 resize-none`}
                   placeholder="Describe the role..."
-                  value={form.jobSummary || ""}
-                  onChange={(e) =>
-                    setForm((f) => ({ ...f, jobSummary: e.target.value }))
-                  }
-                />
-              </div>
-
-              <div>
-                <label className={labelCls}>
-                 STATEMENT OF DUTIES AND RESPONSIBILITIES <span className="text-[#CC1B1B]">*</span>
-                </label>
-                <textarea
-                  className={`${inputCls} h-24 resize-none`}
-                  placeholder="Describe the role..."
                   value={form.about || ""}
                   onChange={(e) =>
                     setForm((f) => ({ ...f, about: e.target.value }))
                   }
                 />
               </div>
+
               <div>
                 <h3 className="text-[14px] font-bold text-[#0A1F5C] uppercase tracking-[2px] mb-3">
                   Competency Requirements
                 </h3>
-                <div>
-                  <label className={labelCls}>
-                    Core Competencies <span className="text-[#CC1B1B]">*</span>
+                
+                {/* Checkbox Selectors */}
+                <div className="flex flex-wrap gap-4 mb-5 p-4 bg-gray-50 border border-gray-200 rounded-lg">
+                  <label className="flex items-center gap-2 text-[13px] font-bold text-[#0A1F5C] cursor-pointer select-none">
+                    <input 
+                      type="checkbox" 
+                      className="w-4 h-4 cursor-pointer accent-[#0A1F5C]"
+                      checked={selectedComps.core}
+                      onChange={() => handleCompToggle('core', 'coreComp')}
+                    />
+                    Core
                   </label>
-                  <textarea
-                    className={`${inputCls} h-24 resize-none`}
-                    placeholder="Describe the role..."
-                    value={form.coreComp || ""}
-                    onChange={(e) =>
-                      setForm((f) => ({ ...f, coreComp: e.target.value }))
-                    }
-                  />
+                  <label className="flex items-center gap-2 text-[13px] font-bold text-[#0A1F5C] cursor-pointer select-none">
+                    <input 
+                      type="checkbox" 
+                      className="w-4 h-4 cursor-pointer accent-[#0A1F5C]"
+                      checked={selectedComps.leadership}
+                      onChange={() => handleCompToggle('leadership', 'leadershipComp')}
+                    />
+                    Leadership
+                  </label>
+                  <label className="flex items-center gap-2 text-[13px] font-bold text-[#0A1F5C] cursor-pointer select-none">
+                    <input 
+                      type="checkbox" 
+                      className="w-4 h-4 cursor-pointer accent-[#0A1F5C]"
+                      checked={selectedComps.functional}
+                      onChange={() => handleCompToggle('functional', 'functionalComp')}
+                    />
+                    Functional
+                  </label>
                 </div>
-                <div>
-                  <label className={labelCls}>
-                    Leadership Competencies{" "}
-                    <span className="text-[#CC1B1B]">*</span>
-                  </label>
-                  <textarea
-                    className={`${inputCls} h-24 resize-none`}
-                    placeholder="Describe the role..."
-                    value={form.leadershipComp || ""}
-                    onChange={(e) =>
-                      setForm((f) => ({ ...f, leadershipComp: e.target.value }))
-                    }
-                  />
-                </div>
-                <div>
-                  <label className={labelCls}>
-                    Functional Competencies{" "}
-                    <span className="text-[#CC1B1B]">*</span>
-                  </label>
-                  <textarea
-                    className={`${inputCls} h-24 resize-none`}
-                    placeholder="Describe the role..."
-                    value={form.functionalComp || ""}
-                    onChange={(e) =>
-                      setForm((f) => ({ ...f, functionalComp: e.target.value }))
-                    }
-                  />
+
+                {/* Conditional Textareas */}
+                <div className="space-y-4">
+                  {selectedComps.core && (
+                    <div className="animate-in fade-in slide-in-from-top-2 duration-300">
+                      <label className={labelCls}>
+                        Core Competencies <span className="text-[#CC1B1B]">*</span>
+                      </label>
+                      <textarea
+                        className={`${inputCls} h-24 resize-none`}
+                        placeholder="Describe the core competencies..."
+                        value={form.coreComp || ""}
+                        onChange={(e) =>
+                          setForm((f) => ({ ...f, coreComp: e.target.value }))
+                        }
+                      />
+                    </div>
+                  )}
+                  {selectedComps.leadership && (
+                    <div className="animate-in fade-in slide-in-from-top-2 duration-300">
+                      <label className={labelCls}>
+                        Leadership Competencies <span className="text-[#CC1B1B]">*</span>
+                      </label>
+                      <textarea
+                        className={`${inputCls} h-24 resize-none`}
+                        placeholder="Describe the leadership competencies..."
+                        value={form.leadershipComp || ""}
+                        onChange={(e) =>
+                          setForm((f) => ({ ...f, leadershipComp: e.target.value }))
+                        }
+                      />
+                    </div>
+                  )}
+                  {selectedComps.functional && (
+                    <div className="animate-in fade-in slide-in-from-top-2 duration-300">
+                      <label className={labelCls}>
+                        Functional Competencies <span className="text-[#CC1B1B]">*</span>
+                      </label>
+                      <textarea
+                        className={`${inputCls} h-24 resize-none`}
+                        placeholder="Describe the functional competencies..."
+                        value={form.functionalComp || ""}
+                        onChange={(e) =>
+                          setForm((f) => ({ ...f, functionalComp: e.target.value }))
+                        }
+                      />
+                    </div>
+                  )}
                 </div>
               </div>
               <div>
@@ -386,7 +443,7 @@ function JobFormModal({ job, onSave, onClose }) {
                 </label>
                 <textarea
                   className={`${inputCls} h-24 resize-none`}
-                  placeholder="Describe the role..."
+                  placeholder="List the required documents..."
                   value={form.docsReq || ""}
                   onChange={(e) =>
                     setForm((f) => ({ ...f, docsReq: e.target.value }))
@@ -403,19 +460,58 @@ function JobFormModal({ job, onSave, onClose }) {
                 Contract of Service Requirements
               </h3>
               <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-                {/* CALENDAR FOR COS */}
-                <div className="flex flex-col">
-                  <label className={labelCls}>Date of Publication</label>
-                  <DatePicker
-                    selectsRange={true}
-                    startDate={startDate}
-                    endDate={endDate}
-                    onChange={handleDateChange}
-                    monthsShown={2}
-                    customInput={<CustomDateInput />}
-                    placeholderText="e.g. March 25 - March 30"
-                  />
+                
+                <div className="md:col-span-3 grid grid-cols-1 md:grid-cols-2 gap-4">
+                  <div className="flex flex-col">
+                    <label className={labelCls}>Date of Publication</label>
+                    <DatePicker
+                      selectsRange={true}
+                      startDate={startDate}
+                      endDate={endDate}
+                      onChange={handleDateChange}
+                      monthsShown={2}
+                      customInput={<CustomDateInput />}
+                      placeholderText="e.g. March 25 - March 30"
+                    />
+                  </div>
+                  <div>
+                    <label className={labelCls}>No. of Person Needed</label>
+                    <input
+                      className={inputCls}
+                      placeholder="e.g. 5"
+                      type="number"
+                      min="1"
+                      value={form.noOfPersonNeeded || ""}
+                      onChange={(e) =>
+                        setForm((f) => ({
+                          ...f,
+                          noOfPersonNeeded: e.target.value,
+                        }))
+                      }
+                    />
+                  </div>
                 </div>
+
+                {/* DYNAMIC C.O.S. ASSIGNMENTS */}
+                {Array.from({
+                  length: Math.max(1, parseInt(form.noOfPersonNeeded) || 1),
+                }).map((_, idx) => (
+                  <div key={`cos-assign-${idx}`} className="md:col-span-3">
+                    <label className={labelCls}>
+                      Place Of Assignment {parseInt(form.noOfPersonNeeded) > 1 ? idx + 1 : ""}
+                    </label>
+                    <input
+                      className={inputCls}
+                      placeholder="e.g. Bayugan City"
+                      value={form.placeOfAssignment?.[idx] || ""}
+                      onChange={(e) => {
+                        const newPlaces = [...(form.placeOfAssignment || [])];
+                        newPlaces[idx] = e.target.value;
+                        setForm((f) => ({ ...f, placeOfAssignment: newPlaces }));
+                      }}
+                    />
+                  </div>
+                ))}
 
                 <div>
                   <label className={labelCls}>Salary Grade</label>
@@ -436,34 +532,6 @@ function JobFormModal({ job, onSave, onClose }) {
                     value={form.monthlySalary || ""}
                     onChange={(e) =>
                       setForm((f) => ({ ...f, monthlySalary: e.target.value }))
-                    }
-                  />
-                </div>
-                <div>
-                  <label className={labelCls}>No. of Person Needed</label>
-                  <input
-                    className={inputCls}
-                    placeholder="e.g. 5"
-                    value={form.noOfPersonNeeded || ""}
-                    onChange={(e) =>
-                      setForm((f) => ({
-                        ...f,
-                        noOfPersonNeeded: e.target.value,
-                      }))
-                    }
-                  />
-                </div>
-                <div>
-                  <label className={labelCls}>Place Of Assignment</label>
-                  <input
-                    className={inputCls}
-                    placeholder="Bayugan City"
-                    value={form.placeOfAssignment || ""}
-                    onChange={(e) =>
-                      setForm((f) => ({
-                        ...f,
-                        placeOfAssignment: e.target.value,
-                      }))
                     }
                   />
                 </div>
@@ -492,7 +560,7 @@ function JobFormModal({ job, onSave, onClose }) {
                     }
                   />
                 </div>
-                <div>
+                <div className="md:col-span-2">
                   <label className={labelCls}>Experience</label>
                   <input
                     className={inputCls}
@@ -503,20 +571,6 @@ function JobFormModal({ job, onSave, onClose }) {
                     }
                   />
                 </div>
-              </div>
-
-              <div>
-                <label className={labelCls}>
-                 STATEMENT OF DUTIES AND RESPONSIBILITIES <span className="text-[#CC1B1B]">*</span>
-                </label>
-                <textarea
-                  className={`${inputCls} h-24 resize-none`}
-                  placeholder="Describe the role..."
-                  value={form.jobSummary || ""}
-                  onChange={(e) =>
-                    setForm((f) => ({ ...f, jobSummary: e.target.value }))
-                  }
-                />
               </div>
               
               <div>
@@ -536,46 +590,85 @@ function JobFormModal({ job, onSave, onClose }) {
                 <h3 className="text-[14px] font-bold text-[#0A1F5C] uppercase tracking-[2px] mb-3">
                   Competency Requirements
                 </h3>
-                <div>
-                  <label className={labelCls}>
-                    Core Competencies <span className="text-[#CC1B1B]">*</span>
+                
+                {/* Checkbox Selectors */}
+                <div className="flex flex-wrap gap-4 mb-5 p-4 bg-gray-50 border border-gray-200 rounded-lg">
+                  <label className="flex items-center gap-2 text-[13px] font-bold text-[#0A1F5C] cursor-pointer select-none">
+                    <input 
+                      type="checkbox" 
+                      className="w-4 h-4 cursor-pointer accent-[#0A1F5C]"
+                      checked={selectedComps.core}
+                      onChange={() => handleCompToggle('core', 'coreComp')}
+                    />
+                    Core
                   </label>
-                  <textarea
-                    className={`${inputCls} h-24 resize-none`}
-                    placeholder="Describe the role..."
-                    value={form.competencyReq || ""}
-                    onChange={(e) =>
-                      setForm((f) => ({ ...f, competencyReq: e.target.value }))
-                    }
-                  />
+                  <label className="flex items-center gap-2 text-[13px] font-bold text-[#0A1F5C] cursor-pointer select-none">
+                    <input 
+                      type="checkbox" 
+                      className="w-4 h-4 cursor-pointer accent-[#0A1F5C]"
+                      checked={selectedComps.leadership}
+                      onChange={() => handleCompToggle('leadership', 'leadershipComp')}
+                    />
+                    Leadership
+                  </label>
+                  <label className="flex items-center gap-2 text-[13px] font-bold text-[#0A1F5C] cursor-pointer select-none">
+                    <input 
+                      type="checkbox" 
+                      className="w-4 h-4 cursor-pointer accent-[#0A1F5C]"
+                      checked={selectedComps.functional}
+                      onChange={() => handleCompToggle('functional', 'functionalComp')}
+                    />
+                    Functional
+                  </label>
                 </div>
-                <div>
-                  <label className={labelCls}>
-                    Leadership Competencies{" "}
-                    <span className="text-[#CC1B1B]">*</span>
-                  </label>
-                  <textarea
-                    className={`${inputCls} h-24 resize-none`}
-                    placeholder="Describe the role..."
-                    value={form.competencyReq || ""}
-                    onChange={(e) =>
-                      setForm((f) => ({ ...f, competencyReq: e.target.value }))
-                    }
-                  />
-                </div>
-                <div>
-                  <label className={labelCls}>
-                    Functional Competencies{" "}
-                    <span className="text-[#CC1B1B]">*</span>
-                  </label>
-                  <textarea
-                    className={`${inputCls} h-24 resize-none`}
-                    placeholder="Describe the role..."
-                    value={form.competencyReq || ""}
-                    onChange={(e) =>
-                      setForm((f) => ({ ...f, competencyReq: e.target.value }))
-                    }
-                  />
+
+                {/* Conditional Textareas */}
+                <div className="space-y-4">
+                  {selectedComps.core && (
+                    <div className="animate-in fade-in slide-in-from-top-2 duration-300">
+                      <label className={labelCls}>
+                        Core Competencies <span className="text-[#CC1B1B]">*</span>
+                      </label>
+                      <textarea
+                        className={`${inputCls} h-24 resize-none`}
+                        placeholder="Describe the core competencies..."
+                        value={form.coreComp || ""}
+                        onChange={(e) =>
+                          setForm((f) => ({ ...f, coreComp: e.target.value }))
+                        }
+                      />
+                    </div>
+                  )}
+                  {selectedComps.leadership && (
+                    <div className="animate-in fade-in slide-in-from-top-2 duration-300">
+                      <label className={labelCls}>
+                        Leadership Competencies <span className="text-[#CC1B1B]">*</span>
+                      </label>
+                      <textarea
+                        className={`${inputCls} h-24 resize-none`}
+                        placeholder="Describe the leadership competencies..."
+                        value={form.leadershipComp || ""}
+                        onChange={(e) =>
+                          setForm((f) => ({ ...f, leadershipComp: e.target.value }))
+                        }
+                      />
+                    </div>
+                  )}
+                  {selectedComps.functional && (
+                    <div className="animate-in fade-in slide-in-from-top-2 duration-300">
+                      <label className={labelCls}>
+                        Functional Competencies <span className="text-[#CC1B1B]">*</span>
+                      </label>
+                      <textarea
+                        className={`${inputCls} h-24 resize-none`}
+                        placeholder="Describe the functional competencies..."
+                        value={form.functionalComp || ""}
+                        onChange={(e) =>
+                          setForm((f) => ({ ...f, functionalComp: e.target.value }))
+                        }
+                      />
+                    </div>
+                  )}
                 </div>
               </div>
               <div>
@@ -585,7 +678,7 @@ function JobFormModal({ job, onSave, onClose }) {
                 </label>
                 <textarea
                   className={`${inputCls} h-24 resize-none`}
-                  placeholder="Describe the role..."
+                  placeholder="Describe document requirements..."
                   value={form.docsReq || ""}
                   onChange={(e) =>
                     setForm((f) => ({ ...f, docsReq: e.target.value }))
@@ -622,10 +715,10 @@ export default function AdminJobs({ jobs, onUpdateJobs }) {
   const [deleteConfirm, setDeleteConfirm] = useState(null);
   const [search, setSearch] = useState("");
 
-  // States for filtering and views
   const [categoryFilter, setCategoryFilter] = useState("All");
   const [isTableView, setIsTableView] = useState(false);
 
+  // --- Ensure placeOfAssignment defaults to array here too ---
   const emptyJob = {
     title: "",
     location: "",
@@ -633,9 +726,9 @@ export default function AdminJobs({ jobs, onUpdateJobs }) {
     responsibilities: [""],
     requirements: [""],
     itemNumber: [""],
+    placeOfAssignment: [""],
   };
 
-  // FILTER LOGIC
   const filtered = jobs.filter((j) => {
     const matchSearch =
       !search ||
@@ -697,7 +790,6 @@ export default function AdminJobs({ jobs, onUpdateJobs }) {
       </div>
 
       <div className="max-w-6xl mx-auto px-8 py-8">
-        {/* UNIFIED FILTER BAR */}
         <div className="bg-white border-2 border-gray-200 rounded-xl p-5 mb-8 flex flex-wrap gap-4 items-end shadow-sm">
           <div className="flex-1 min-w-[200px]">
             <label className="block text-[11px] font-bold tracking-widest uppercase text-[#0A1F5C] mb-1.5">
@@ -751,7 +843,6 @@ export default function AdminJobs({ jobs, onUpdateJobs }) {
           </div>
         </div>
 
-        {/* CONDITIONALLY RENDER TABLE OR CARDS */}
         {isTableView ? (
           <div className="bg-white border-2 border-gray-200 rounded-xl overflow-hidden overflow-x-auto shadow-sm">
             <table className="w-full text-left border-collapse whitespace-nowrap">
@@ -850,8 +941,6 @@ export default function AdminJobs({ jobs, onUpdateJobs }) {
                       )}
                     </td>
                     <td className="px-4 py-3 text-gray-500">{job.location}</td>
-
-                    {/* INDIVIDUAL REQUIREMENT CELLS */}
                     <td className="px-4 py-3 text-gray-500">
                       {Array.isArray(job.itemNumber)
                         ? job.itemNumber.join(", ")

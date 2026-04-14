@@ -1,6 +1,5 @@
 import React from 'react';
-import { X, Tag, HandCoins, Banknote,  Landmark } from 'lucide-react';
-
+import { X, Tag, HandCoins, Banknote, Landmark } from 'lucide-react';
 
 export default function JobDetailsModal({ job, onClose, onApply }) {
   // Early return if no job is selected
@@ -15,14 +14,28 @@ export default function JobDetailsModal({ job, onClose, onApply }) {
     parsedItemNumbers = job.itemNumber;
   } else if (typeof job.itemNumber === "string") {
     try {
-      // Try parsing it in case it was saved as a JSON string
       const parsed = JSON.parse(job.itemNumber);
       parsedItemNumbers = Array.isArray(parsed) ? parsed : [job.itemNumber];
     } catch (e) {
-      // If it's a normal text string, wrap it in an array
       parsedItemNumbers = [job.itemNumber];
     }
   }
+
+  // --- PARSING LOGIC FOR PLACES OF ASSIGNMENT ---
+  let parsedAssignments = [];
+  if (Array.isArray(job.placeOfAssignment)) {
+    parsedAssignments = job.placeOfAssignment;
+  } else if (typeof job.placeOfAssignment === "string") {
+    try {
+      const parsed = JSON.parse(job.placeOfAssignment);
+      parsedAssignments = Array.isArray(parsed) ? parsed : [job.placeOfAssignment];
+    } catch (e) {
+      parsedAssignments = [job.placeOfAssignment];
+    }
+  }
+
+  // Add this right before the `return (` statement
+  const hasCompetencies = job.coreComp || job.leadershipComp || job.functionalComp;
 
   return (
     <div className={`fixed inset-0 bg-[#0A1F5C]/80 z-50 flex items-center justify-center p-4 backdrop-blur-sm`}>
@@ -53,37 +66,42 @@ export default function JobDetailsModal({ job, onClose, onApply }) {
               <Banknote size={14} className="text-[#CC1B1B]" /> SG {job.salaryGrade} 
             </span>
             <span className="inline-flex items-center gap-1.5 bg-white border border-gray-200 text-gray-600 text-[12px] font-bold tracking-wider uppercase px-3 py-1.5 rounded shadow-sm">
-              <HandCoins size={14} className="text-[#CC1B1B]" />₱{job.monthlySalary} Montly Salary
+              <HandCoins size={14} className="text-[#CC1B1B]" />₱{job.monthlySalary} Monthly Salary
             </span>
-            <span className="inline-flex items-center gap-1.5 bg-white border border-gray-200 text-gray-600 text-[12px] font-bold tracking-wider uppercase px-3 py-1.5 rounded shadow-sm">
-              <Landmark size={14} className="text-[#CC1B1B]" />Assignment:  {job.placeOfAssignment || "Caraga Regional Office"}
-            </span>
-            
           </div>
         </div>
 
         {/* Scrollable Content Body */}
         <div className="px-10 py-8 overflow-y-auto flex-1 [scrollbar-width:none] [-ms-overflow-style:none] [&::-webkit-scrollbar]:hidden">
           
-          {/* Section 1: Position Description */}
+          {/* Section 1: Position Description & Item/Assignment Pairs */}
           <div className="mb-8">
-              <div className="flex flex-wrap gap-2 mb-4">
+              <div className="flex flex-col gap-3 mb-6">
                 {parsedItemNumbers.map((item, idx) => {
                   if (!item || typeof item !== 'string' || item.trim() === "") return null;
                   
+                  // Match the assignment to the item index. 
+                  // If there's only 1 assignment but 2 items, it defaults to the first assignment.
+                  const assignment = parsedAssignments[idx] || parsedAssignments[0] || "Caraga Regional Office";
+
                   return (
-                    <span key={`item-${idx}`} className="inline-flex items-center gap-1.5 bg-white border border-gray-200 text-gray-600 text-[12px] font-bold tracking-wider uppercase px-3 py-1.5 rounded shadow-sm">
-                      <Tag size={14} className="text-[#CC1B1B]" /> Item No. {item}
-                    </span>
+                    <div key={`item-${idx}`} className="flex flex-wrap gap-3">
+                      <span className="inline-flex items-center gap-1.5 bg-white border border-gray-200 text-gray-600 text-[12px] font-bold tracking-wider uppercase px-3 py-1.5 rounded shadow-sm">
+                        <Tag size={14} className="text-[#CC1B1B]" /> Item No. {item}
+                      </span>
+                      <span className="inline-flex items-center gap-1.5 bg-white border border-gray-200 text-gray-600 text-[12px] font-bold tracking-wider uppercase px-3 py-1.5 rounded shadow-sm">
+                        <Landmark size={14} className="text-[#CC1B1B]" /> Assignment: {assignment}
+                      </span>
+                    </div>
                   );
                 })}
               </div> 
+
             <div>
               {isPlantilla ? (
-                   
                 <div className="bg-[#EEF2FF] p-5 rounded-lg border border-[#0A1F5C]/10">
                   <h4 className="text-[#0A1F5C] font-bold text-[15px] uppercase tracking-wider mb-3 "> Minimum Requirements</h4>
-                  <ul className=" md:grid-cols-2 gap-y-3 gap-x-6 text-[16px] text-gray-700">
+                  <ul className="grid md:grid-cols-2 gap-y-3 gap-x-6 text-[16px] text-gray-700">
                     <li><strong className="text-[#0A1F5C]">Education:</strong> {job.education || "N/A"}</li>
                     <li><strong className="text-[#0A1F5C]">Experience:</strong> {job.experience || "N/A"}</li>
                     <li><strong className="text-[#0A1F5C]">Training:</strong> {job.trainingRequirements || "N/A"}</li>
@@ -109,32 +127,55 @@ export default function JobDetailsModal({ job, onClose, onApply }) {
           <p className="text-gray-600 text-[18px] leading-relaxed whitespace-pre-line mb-5">
             {job.about || "No description provided for this role."}
           </p>
-          <div>  
-            <h3 className="text-[#0A1F5C] font-black text-[15px] tracking-[2px] uppercase border-b-2 border-[#FFD000] pb-2 mb-4">
-              Competency Requirements
-            </h3>
-            <div className="mx-2">
-              <h3 className="text-[#0A1F5C] font-black text-[12px] tracking-[2px] uppercase mb-1">
-                Core Competencies
+
+          {/* Only show the entire section if at least one competency exists */}
+          {hasCompetencies && (
+            <div>  
+              <h3 className="text-[#0A1F5C] font-black text-[15px] tracking-[2px] uppercase border-b-2 border-[#FFD000] pb-2 mb-4">
+                Competency Requirements
               </h3>
-              <p className="text-gray-600 text-[15px] leading-relaxed whitespace-pre-line mb-5">
-                {job.coreComp }
-              </p>
-              <h3 className="text-[15px] font-black text-[12px] tracking-[2px] uppercase   mb-1">
-                Leadership Competencies
-              </h3>
-              <p className="text-gray-600 text-[15px] leading-relaxed whitespace-pre-line mb-5">
-                {job.leadershipComp  }
-              </p>
-              
-              <h3 className="text-[#0A1F5C] font-black text-[12px] tracking-[2px] uppercase  mb-1">
-                Functional Competencies
-              </h3>
-              <p className="text-gray-600 text-[15px] leading-relaxed whitespace-pre-line mb-5">
-                {job.functionalComp  }
-              </p>
-            </div>
-          </div>      
+              <div className="mx-2">
+                
+                {/* Conditionally render Core */}
+                {job.coreComp && (
+                  <div className="mb-5">
+                    <h3 className="text-[#0A1F5C] font-black text-[12px] tracking-[2px] uppercase mb-1">
+                      Core Competencies
+                    </h3>
+                    <p className="text-gray-600 text-[15px] leading-relaxed whitespace-pre-line">
+                      {job.coreComp}
+                    </p>
+                  </div>
+                )}
+
+                {/* Conditionally render Leadership */}
+                {job.leadershipComp && (
+                  <div className="mb-5">
+                    <h3 className="text-[#0A1F5C] font-black text-[12px] tracking-[2px] uppercase mb-1">
+                      Leadership Competencies
+                    </h3>
+                    <p className="text-gray-600 text-[15px] leading-relaxed whitespace-pre-line">
+                      {job.leadershipComp}
+                    </p>
+                  </div>
+                )}
+
+                {/* Conditionally render Functional */}
+                {job.functionalComp && (
+                  <div className="mb-5">
+                    <h3 className="text-[#0A1F5C] font-black text-[12px] tracking-[2px] uppercase mb-1">
+                      Functional Competencies
+                    </h3>
+                    <p className="text-gray-600 text-[15px] leading-relaxed whitespace-pre-line">
+                      {job.functionalComp}
+                    </p>
+                  </div>
+                )}
+                
+              </div>
+            </div> 
+          )}    
+
           <h3 className="text-[#0A1F5C] font-black text-[15px] tracking-[2px] uppercase border-b-2 border-[#FFD000] pb-2 mb-4">
             Document Requirements
           </h3>
