@@ -5,7 +5,7 @@
 
 import { createClient } from "@supabase/supabase-js";
 
-const SUPABASE_URL = "https://rziapvlbbxjryuimqolo.supabase.co"; // ← replace
+const SUPABASE_URL = "https://rziapvlbbxjryuimqolo.supabase.co"; 
 const SUPABASE_ANON =
   "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InJ6aWFwdmxiYnhqcnl1aW1xb2xvIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzI3NjM5MjgsImV4cCI6MjA4ODMzOTkyOH0.GoCLLjqwPV40h_nF9j54g38Zr280jQqqKv1a_owlhwo"; // ← replace
 
@@ -200,11 +200,12 @@ export async function submitApplication(app) {
       edu_honors: app.edu_honors,
       edu_grad_school: app.edu_grad_school,
       edu_grad_year: app.edu_grad_year,
-      work_trainings: app.work_trainings,
+      unitEarn: app.unitEarn,
       work_skills: app.work_skills,
       work_position: app.work_position,
       work_dates: app.work_dates,
       work_employer_name: app.work_employer_name,
+
     },
   ]);
   if (error) throw friendlyError(error);
@@ -258,7 +259,7 @@ export async function deleteApplication(id) {
 
 // ─── HELPERS ─────────────────────────────────────────────────────────────────
 
-function normalizeApp(row) {
+function normalizeApp(row, workExperiences = []) {
   return {
     id: row.id,
     jobId: row.job_id,
@@ -279,11 +280,12 @@ function normalizeApp(row) {
     eduHonors: row.edu_honors,
     eduGradSchool: row.edu_grad_school,
     eduGradYear: row.edu_grad_year,
-    workTrainings: row.work_trainings,
-    workSkills: row.work_skills,
     workPosition: row.work_position,
     workDates: row.work_dates,
     workEmployerName: row.work_employer_name,
+    workTrainings: row.work_trainings,
+    workSkills: row.work_skills,
+    workExperiences: workExperiences, // Array of work experiences
     fileName: row.worksheet_file,
     interviewDate: row.interview_date, 
     appliedAt: row.applied_at

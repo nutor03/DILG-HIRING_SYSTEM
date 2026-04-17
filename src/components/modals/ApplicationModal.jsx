@@ -73,7 +73,7 @@ export default function ApplicationModal({
   // Replace your current workData state with this:
   const [workData, setWorkData] = useState({
     experiences: [
-      { employerFirst: "", employerLast: "", position: "", dates: "", skills: "" },
+      { work_employer_name: "", work_position: "", work_dates: "", work_skills: "" },
     ],
     appLetterFile: null,
     appLetterName: "",
@@ -81,8 +81,11 @@ export default function ApplicationModal({
     workExpFileName: "",
   });
 
+  
+
   const handleExpChange = (index, field, value) => {
   const updatedExperiences = [...workData.experiences];
+
   updatedExperiences[index][field] = value;
   setWorkData({ ...workData, experiences: updatedExperiences });
   };
@@ -92,7 +95,7 @@ export default function ApplicationModal({
       ...workData,
       experiences: [
         ...workData.experiences,
-        { employerFirst: "", employerLast: "", position: "", dates: "", skills: "" },
+        { work_employer_name: "", work_position: "", work_dates: "", work_skills: "" },
       ],
     });
   };
@@ -126,6 +129,7 @@ const handleNext = () => {
   };
 
   const handleSubmit = async () => {
+    console.log("Submitting application with data:", { formData, eduData, workData });
     setIsSubmitting(true);
     await onSubmit({ formData, eduData, workData });
     setIsSubmitting(false);
@@ -464,7 +468,6 @@ const handleNext = () => {
           )}
 
           {/* STEP 3: EXPERIENCE & UPLOAD */}
-          {/* STEP 3: EXPERIENCE & UPLOAD */}
           {step === 3 && (
             <div className="space-y-6 animate-in fade-in slide-in-from-right-4 duration-300">
               
@@ -490,8 +493,8 @@ const handleNext = () => {
                       <label className={labelCls}>Position Title</label>
                       <input
                         className={inputCls}
-                        value={exp.position}
-                        onChange={(e) => handleExpChange(index, "position", e.target.value)}
+                        value={exp.work_position}
+                        onChange={(e) => handleExpChange(index, "work_position", e.target.value)}
                         placeholder="e.g. IT Officer I"
                       />
                     </div>
@@ -499,8 +502,8 @@ const handleNext = () => {
                       <label className={labelCls}>Inclusive Dates</label>
                       <input
                         className={inputCls}
-                        value={exp.dates}
-                        onChange={(e) => handleExpChange(index, "dates", e.target.value)}
+                        value={exp.work_dates}
+                        onChange={(e) => handleExpChange(index, "work_dates", e.target.value)}
                         placeholder="Jan 2022 - Present"
                       />
                     </div>
@@ -509,16 +512,11 @@ const handleNext = () => {
                       <div className="grid grid-cols-2 gap-2">
                         <input
                           className={inputCls}
-                          value={exp.employerFirst}
-                          onChange={(e) => handleExpChange(index, "employerFirst", e.target.value)}
-                          placeholder="First Name / Company"
+                          value={exp.work_employer_name}
+                          onChange={(e) => handleExpChange(index, "work_employer_name", e.target.value)}
+                          placeholder="Employer / Agency Name"
                         />
-                        <input
-                          className={inputCls}
-                          value={exp.employerLast}
-                          onChange={(e) => handleExpChange(index, "employerLast", e.target.value)}
-                          placeholder="Last Name (Optional)"
-                        />
+                        
                       </div>
                     </div>
                   </div>
@@ -526,8 +524,8 @@ const handleNext = () => {
                     <label className={labelCls}>Relevant Skills & Trainings</label>
                     <textarea
                       className={`${inputCls} h-20 resize-none`}
-                      value={exp.skills}
-                      onChange={(e) => handleExpChange(index, "skills", e.target.value)}
+                      value={exp.work_skills}
+                      onChange={(e) => handleExpChange(index, "work_skills", e.target.value)}
                       placeholder="List your technical skills and relevant seminars attended..."
                     />
                   </div>
@@ -656,17 +654,18 @@ const handleNext = () => {
                         Role {index + 1}
                       </p>
                       <div className="space-y-1">
-                        <ReviewRow label="Position" value={exp.position} />
+                        {/* 🚀 Updated to match the new state keys */}
+                        <ReviewRow label="Position" value={exp.work_position} />
                         <ReviewRow
                           label="Employer"
-                          value={`${exp.employerFirst} ${exp.employerLast}`.trim()}
+                          value={exp.work_employer_name}
                         />
-                        <ReviewRow label="Dates" value={exp.dates} />
+                        <ReviewRow label="Dates" value={exp.work_dates} />
                       </div>
                     </div>
                   ))}
                   
-                  <div className="pt-2  space-y-1">
+                  <div className="pt-2 space-y-1">
                     <ReviewRow label="Document Requirements" value={workData.workExpFileName} />
                   </div>
                 </div>

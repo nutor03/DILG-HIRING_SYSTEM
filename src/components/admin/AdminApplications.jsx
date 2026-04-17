@@ -282,11 +282,7 @@ function ApplicantModal({
             <div className="grid grid-cols-2 gap-4 mb-4">
               <Field label="Position" value={app.workPosition} />
               <Field label="Inclusive Dates" value={app.workDates} />
-              <Field label="Employer Last Name" value={app.workEmployerName} />
-              <Field
-                label="Employer First Name"
-                value={app.workEmployerFirstName}
-              />
+              <Field label="Employer Name" value={app.workEmployerName} />
             </div>
             <Field label="Relevant Trainings" value={app.workTrainings} />
             <div className="mt-3">
@@ -700,7 +696,7 @@ export default function AdminApplications({ jobs }) {
       "Location",
       "Status",
       "Applied Date",
-      "Interview Schedule", 
+      "Interview Schedule",
       "School/University",
       "Degree/Course",
       "Year Graduated",
@@ -749,11 +745,11 @@ export default function AdminApplications({ jobs }) {
           a.eduGradSchool || "",
           a.eduGradYear || "",
           a.unitEarn || "",
-          a.workPosition || "",
-          a.workDates || "",
-          a.workTrainings || "",
-          a.workSkills || "",
-          a.workEmployerName || "",
+          a.work_position || "",
+          a.work_dates || "",
+          a.work_trainings || "",
+          a.work_skills || "",
+          a.work_employer_name || "",
         ];
       }),
     ];
@@ -943,26 +939,26 @@ export default function AdminApplications({ jobs }) {
                     Educational attainment
                   </th>
                   <th className="px-4 py-3 text-[11px] font-bold uppercase tracking-wider">
-                    Gradaute Studies
+                    Graduate Studies
                   </th>
                   <th className="px-4 py-3 text-[11px] font-bold uppercase tracking-wider">
                     academic honors recieved
-                  </th>      
+                  </th>
                   <th className="px-4 py-3 text-[11px] font-bold uppercase tracking-wider">
                     Relevant training
-                  </th>     
+                  </th>
                   <th className="px-4 py-3 text-[11px] font-bold uppercase tracking-wider">
                     skills
-                  </th>   
+                  </th>
                   <th className="px-4 py-3 text-[11px] font-bold uppercase tracking-wider">
                     position
-                  </th> 
+                  </th>
                   <th className="px-4 py-3 text-[11px] font-bold uppercase tracking-wider">
                     inclusive dates
-                  </th>        
+                  </th>
                   <th className="px-4 py-3 text-[11px] font-bold uppercase tracking-wider">
                     employer
-                  </th>   
+                  </th>
                 </tr>
               </thead>
               <tbody className="divide-y divide-gray-100 text-[13px] text-gray-700">
@@ -1025,15 +1021,11 @@ export default function AdminApplications({ jobs }) {
                       </td>
                       <td className="px-4 py-3">{app.applicantEmail}</td>
                       <td className="px-4 py-3">{app.applicantContact}</td>
+                      <td className="px-4 py-3">{app.applicantAge}</td>
                       <td className="px-4 py-3">
-                        {app.applicantAge} 
+                        {app.applicantSex?.charAt(0)}
                       </td>
-                      <td className="px-4 py-3">
-                        {app.applicantSex?.charAt(0)} 
-                      </td>
-                      <td className="px-4 py-3">
-                        {app.applicantStatus}
-                      </td>
+                      <td className="px-4 py-3">{app.applicantStatus}</td>
                       <td
                         className="px-4 py-3 truncate max-w-[200px]"
                         title={app.applicantAddress}
@@ -1041,29 +1033,19 @@ export default function AdminApplications({ jobs }) {
                         {app.applicantAddress}
                       </td>
                       <td className="px-4 py-3">
-                       {app.eduSchool} / {app.eduCourse} / {app.eduYear}
+                        {app.eduSchool} / {app.eduCourse} / {app.eduYear}
                       </td>
                       <td className="px-4 py-3">
-                       {app.eduGradSchool} / {app.eduGradYear} / {app.eduGradSchoolUnit} 
+                        {app.eduGradSchool} / {app.eduGradYear} /{" "}
+                        {app.eduGradSchoolUnit}
                       </td>
-                      <td className="px-4 py-3">
-                       {app.eduHonors} 
-                      </td>
-                      <td className="px-4 py-3">
-                       {app.workTrainings} 
-                      </td>
-                      <td className="px-4 py-3">
-                       {app.workSkills} 
-                      </td>
-                      <td className="px-4 py-3">
-                       {app.workPosition} 
-                      </td>
-                      <td className="px-4 py-3">
-                       {app.workDates} 
-                      </td>
-                      
-                      <td className="px-4 py-3">{app.workEmployerName}</td>
-                     
+                      <td className="px-4 py-3">{app.eduHonors}</td>
+                      <td className="px-4 py-3">{app.work_trainings}</td>
+                      <td className="px-4 py-3">{app.work_skills}</td>
+                      <td className="px-4 py-3">{app.work_position}</td>
+                      <td className="px-4 py-3">{app.work_dates}</td>
+
+                      <td className="px-4 py-3">{app.work_employer_name}</td>
                     </tr>
                   );
                 })}
