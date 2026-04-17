@@ -715,15 +715,6 @@ export default function AdminApplications({ jobs }) {
       headers,
       ...filtered.map((a) => {
         // Graceful decode for CSV
-        let exportSchedule = "";
-        if (a.interviewDate) {
-          try {
-            const parsed = JSON.parse(a.interviewDate);
-            exportSchedule = `${parsed.date} (Written: ${formatTime(parsed.writtenTime)} | F2F: ${formatTime(parsed.f2fTime)})`;
-          } catch (e) {
-            exportSchedule = new Date(a.interviewDate).toLocaleString();
-          }
-        }
 
         return [
           a.applicantName || "",

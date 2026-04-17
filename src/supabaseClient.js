@@ -93,7 +93,7 @@ export const fetchJobs = async () => {
     .select('*')
     .order('created_at', { ascending: false }); // <--- Add this line!
     // Note: If you don't have a 'created_at' column, you can use 'id' instead.
-    
+    if(error){console.log(error)}
   return data;
 };
 
