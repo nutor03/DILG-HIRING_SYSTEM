@@ -954,10 +954,6 @@ export default function AdminApplications({ jobs }) {
               </thead>
               <tbody className="divide-y divide-gray-100 text-[13px] text-gray-700">
                 {filtered.map((app) => {
-                  const cleanName = getCleanFileName(
-                    app.fileName,
-                    app.applicantName,
-                  );
                   return (
                     <tr
                       key={app.id}
