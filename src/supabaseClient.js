@@ -153,7 +153,7 @@ export const saveJob = async (jobData) => {
       return data;
     }
   } catch (error) {
-    console.error("🛑 Supabase Save Error:", error);
+    console.error(" Supabase Save Error:", error);
     
     if (error.code === 'PGRST116') {
        alert("Edit blocked! Please check your Supabase Row Level Security (RLS) policies.");
@@ -198,6 +198,7 @@ export async function submitApplication(app) {
       edu_course: app.edu_course,
       edu_year: app.edu_year,
       edu_honors: app.edu_honors,
+      eligibility: app.eligibility,
       edu_grad_school: app.edu_grad_school,
       edu_grad_year: app.edu_grad_year,
       unitEarn: app.unitEarn,
@@ -280,6 +281,8 @@ function normalizeApp(row, workExperiences = []) {
     eduHonors: row.edu_honors,
     eduGradSchool: row.edu_grad_school,
     eduGradYear: row.edu_grad_year,
+    unitEarn: row.unitEarn,
+    eligibility: row.eligibility,
     workPosition: row.work_position,
     workDates: row.work_dates,
     workEmployerName: row.work_employer_name,

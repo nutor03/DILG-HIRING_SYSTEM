@@ -65,9 +65,10 @@ export default function ApplicationModal({
     course: "",
     year: "",
     honors: "",
+    eligibility: "",
     gradSchool: "",
     gradYear: "",
-    unitEarn: "",
+    unitearn: "",
   });
 
   // Replace your current workData state with this:
@@ -268,7 +269,7 @@ const handleNext = () => {
                       setFormData({ ...formData, email: e.target.value });
                       if (errors.email) setErrors({ ...errors, email: null });
                     }}
-                    disabled={!!currentUser?.email}
+                    placeholder={!!currentUser?.email}
                   />
                   {errors.email && <p className="text-red-500 text-[10px] mt-1 font-bold">{errors.email}</p>}
                 </div>
@@ -420,6 +421,25 @@ const handleNext = () => {
                       />
                     </div>
                   </div>
+                </div>
+              </div>
+
+              <div className="p-5 border-2 border-gray-100 rounded-lg bg-gray-50/50">
+                <h3 className="text-[#0A1F5C] font-black text-[14px] uppercase tracking-wider mb-4 border-b-2 border-[#FFD000] inline-block pb-1">
+                  Eligibility
+                </h3>
+                <div className=" mb-4">
+                  <div>
+                    <input
+                      className={inputCls}
+                      value={eduData.eligibility}
+                      onChange={(e) =>
+                        setEduData({ ...eduData, eligibility: e.target.value })
+                      }
+                      placeholder="e.g. BS Computer Science"
+                    />
+                  </div>
+                 
                 </div>
               </div>
 
@@ -627,9 +647,41 @@ const handleNext = () => {
                   />
                   <ReviewRow
                     label="Degree"
-                    value={`${eduData.course} (${eduData.year})`}
+                    value={`${eduData.course} `}
+                  />
+                   <ReviewRow
+                    label="Year Graduated"
+                    value={`${eduData.year}`}
                   />
                   <ReviewRow label="Honors" value={eduData.honors} />
+                  <ReviewRow label="Eligibility" value={eduData.eligibility} />
+                  
+                </div>
+              </div>
+
+              <div className="border-2 border-gray-100 rounded-lg overflow-hidden">
+                <div className="bg-gray-50 px-5 py-3 border-b border-gray-100 flex justify-between items-center">
+                  <h4 className="font-black text-[#0A1F5C] uppercase tracking-wider text-[13px]">
+                    Graduate Studies
+                  </h4>
+                  <button
+                    onClick={() => jumpToStep(2)}
+                    className="text-[#CC1B1B] hover:text-[#0A1F5C] flex items-center gap-1 text-[11px] font-bold uppercase tracking-wider transition-colors"
+                  >
+                    <Edit3 size={12} /> Edit
+                  </button>
+                </div>
+                <div className="p-5 bg-white space-y-1">
+                  <ReviewRow
+                    label="College/University"
+                    value={eduData.gradSchool}
+                  />
+                   <ReviewRow
+                    label="Unit Earned"
+                    value={`${eduData.unitEarn}`}
+                  />
+                  <ReviewRow label="Year" value={eduData.gradYear} />
+                  
                 </div>
               </div>
 
@@ -654,13 +706,14 @@ const handleNext = () => {
                         Role {index + 1}
                       </p>
                       <div className="space-y-1">
-                        {/* 🚀 Updated to match the new state keys */}
+                        {/*  Updated to match the new state keys */}
                         <ReviewRow label="Position" value={exp.work_position} />
                         <ReviewRow
                           label="Employer"
                           value={exp.work_employer_name}
                         />
-                        <ReviewRow label="Dates" value={exp.work_dates} />
+                        <ReviewRow label="Inclusive Dates" value={exp.work_dates} />
+                        <ReviewRow label="Relevant Skills & Trainings" value={exp.work_skills} />
                       </div>
                     </div>
                   ))}

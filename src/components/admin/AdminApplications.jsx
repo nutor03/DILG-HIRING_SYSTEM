@@ -25,6 +25,7 @@ import {
   updateApplicationSchedule,
 } from "../../supabaseClient";
 import { ALL_STATUSES, STATUS_CONFIG } from "../../utils/constants";
+import * as XLSX from 'xlsx';
 
 const getCleanFileName = (fileName, applicantName) => {
   if (!fileName) return "Document.pdf";
@@ -169,6 +170,7 @@ function ApplicantModal({
               value={
                 [
                   "Approved / Hired",
+                  "Recommend",
                   "Rejected w/ Reason",
                   "Rejected w/ No Reason",
                 ].includes(app.status)
@@ -180,6 +182,7 @@ function ApplicantModal({
             >
               {![
                 "Approved / Hired",
+                "Recommend",
                 "Rejected w/ Reason",
                 "Rejected w/ No Reason",
               ].includes(app.status) && (
@@ -188,6 +191,9 @@ function ApplicantModal({
                 </option>
               )}
               <option value="Approved / Hired">Approved / Hired</option>
+              <option value="Recommended for another position">
+                Recommend 
+              </option>
               <option value="Rejected w/ Reason">Rejected w/ Reason</option>
               <option value="Rejected w/ No Reason">
                 Rejected w/ No Reason
@@ -270,12 +276,19 @@ function ApplicantModal({
               <Field label="Degree / Course" value={app.eduCourse} />
               <Field label="Year Graduated" value={app.eduYear} />
               <Field label="Academic Honors" value={app.eduHonors} />
-              {app.eduGradSchool && (
-                <>
-                  <Field label="Graduate School" value={app.eduGradSchool} />
-                  <Field label="Grad Year" value={app.eduGradYear} />
-                </>
-              )}
+              
+            </div>
+          </Section>
+          <Section title="Graduate Education">
+            <div className="grid grid-cols-2 gap-4">
+              <Field label="Graduate School" value={app.eduGradSchool} />
+              <Field label="Year Graduated" value={app.eduGradYear} />
+              <Field label="Unit Earned " value={app.unitEarn} />
+            </div>
+          </Section>
+          <Section title="Eligibility">
+            <div >
+              <Field  value={app.eligibility} />
             </div>
           </Section>
           <Section title="Work Experience">
@@ -284,9 +297,9 @@ function ApplicantModal({
               <Field label="Inclusive Dates" value={app.workDates} />
               <Field label="Employer Name" value={app.workEmployerName} />
             </div>
-            <Field label="Relevant Trainings" value={app.workTrainings} />
+           
             <div className="mt-3">
-              <Field label="Skills" value={app.workSkills} />
+              <Field label="Relevant Training and Skills" value={app.workSkills} />
             </div>
           </Section>
 
@@ -504,6 +517,7 @@ export default function AdminApplications({ jobs }) {
     if (
       [
         "Approved / Hired",
+        "Recommend",
         "Rejected w/ Reason",
         "Rejected w/ No Reason",
         "Interview Scheduled",
@@ -682,78 +696,87 @@ export default function AdminApplications({ jobs }) {
     }
   };
 
-  const exportCSV = () => {
+  const exportExcel = () => {
     const headers = [
-      "Applicant Name",
-      "Email",
-      "Contact",
+      "Job Title",
+      "Full Name: (Family Name, Given Name,Middle Name)",
+      "Address",
+      "Civil Status",
       "Age",
       "Sex",
-      "Civil Status",
-      "Address",
-      "Job Title",
-      "Job Category",
-      "Location",
-      "Status",
-      "Applied Date",
-      "Interview Schedule",
-      "School/University",
-      "Degree/Course",
-      "Year Graduated",
-      "Academic Honors",
-      "Graduate School",
-      "Grad School Year",
-      "Unit Earned",
+      "Contact",
+      "Email Address",
+      "Educational Attainment (College Course/School/Year Graduated)",
+      "Graduate Studies (School & Year Graduated)",
+      "Academic Honors Received",
+      "Relevant Trainings: ",
+      "Skills",
       "Work Position",
       "Work Dates",
-      "Trainings",
-      "Skills",
       "Employer Name",
     ];
 
+    // 1. Group applications by email (fallback to name) to merge duplicate applicants
+    const groupedApps = Object.values(
+      filtered.reduce((acc, app) => {
+        const key = app.applicantEmail || app.applicantName || "unknown";
+        
+        if (!acc[key]) {
+          acc[key] = { 
+            ...app, 
+            mergedJobTitles: app.jobTitle ? [app.jobTitle] : [] 
+          };
+        } else {
+          if (app.jobTitle && !acc[key].mergedJobTitles.includes(app.jobTitle)) {
+            acc[key].mergedJobTitles.push(app.jobTitle);
+          }
+        }
+        return acc;
+      }, {})
+    );
+
+    // 2. Map the grouped data to rows
     const rows = [
       headers,
-      ...filtered.map((a) => {
-        // Graceful decode for CSV
-
+      ...groupedApps.map((a) => {
         return [
+          a.mergedJobTitles.join(", ") || "",
           a.applicantName || "",
-          a.applicantEmail || "",
-          a.applicantContact || "",
+          a.applicantAddress || "",
+          a.applicantStatus || "",
           a.applicantAge || "",
           a.applicantSex || "",
-          a.applicantStatus || "",
-          a.applicantAddress || "",
-          a.jobTitle || "",
-          a.category || "",
-          a.location || "",
-          a.status || "",
-          a.appliedAt || "",
-          a.eduSchool || "",
-          a.eduCourse || "",
-          a.eduYear || "",
+          a.applicantContact || "",
+          a.applicantEmail || "",        
+          [a.eduCourse, a.eduYear].filter(Boolean).join(" / ") || "",
+          [a.eduGradSchool, a.eduGradYear, a.unitEarn].filter(Boolean).join(" / ") || "",
           a.eduHonors || "",
-          a.eduGradSchool || "",
-          a.eduGradYear || "",
-          a.unitEarn || "",
-          a.work_position || "",
-          a.work_dates || "",
-          a.work_trainings || "",
-          a.work_skills || "",
-          a.work_employer_name || "",
+          a.workTrainings || a.work_trainings || "",
+          a.workSkills || a.work_skills || "",
+          a.workPosition || a.work_position || "",
+          a.workDates || a.work_dates || "",
+          a.workEmployerName || a.work_employer_name || "",
         ];
       }),
     ];
-    const csv = rows
-      .map((r) => r.map((v) => `"${String(v).replace(/"/g, '""')}"`).join(","))
-      .join("\n");
-    const blob = new Blob([csv], { type: "text/csv" });
-    const url = URL.createObjectURL(blob);
-    const a = document.createElement("a");
-    a.href = url;
-    a.download = "DILG_Applicant_Data_Export.csv";
-    a.click();
-    URL.revokeObjectURL(url);
+
+    // 3. Generate the Excel Workbook and Worksheet
+    const worksheet = XLSX.utils.aoa_to_sheet(rows);
+    const workbook = XLSX.utils.book_new();
+    
+    // Append the worksheet to the workbook (naming the tab "Applicants")
+    XLSX.utils.book_append_sheet(workbook, worksheet, "Applicants");
+
+    // 4. Dynamic filename based on filters
+    let exportName = "DILG_All_Applicants.xlsx";
+    if (activePosition !== "All") {
+      exportName = `DILG_${activePosition.replace(/\s+/g, '_')}_Applicants.xlsx`;
+    } else if (searchQ) {
+      exportName = `DILG_Search_${searchQ.replace(/\s+/g, '_')}.xlsx`;
+    }
+
+    // 5. Trigger the download automatically
+    XLSX.writeFile(workbook, exportName);
   };
 
   return (
@@ -786,11 +809,11 @@ export default function AdminApplications({ jobs }) {
             </p>
           </div>
           <button
-            onClick={exportCSV}
+            onClick={exportExcel}
             className="flex items-center gap-2 bg-[#FFD000] text-[#0A1F5C] font-black text-[14px] tracking-[2px] uppercase px-6 py-3 rounded-lg hover:bg-white transition-all cursor-pointer"
             style={{ fontFamily: "'Barlow Condensed',sans-serif" }}
           >
-            <Download size={16} /> Export Full Data CSV
+            <Download size={16} /> Export Data Excel
           </button>
         </div>
       </div>
@@ -1024,7 +1047,7 @@ export default function AdminApplications({ jobs }) {
                       </td>
                       <td className="px-4 py-3">
                         {app.eduGradSchool} / {app.eduGradYear} /{" "}
-                        {app.eduGradSchoolUnit}
+                        {app.earnUnit ? `${app.earnUnit} units` : ""}
                       </td>
                       <td className="px-4 py-3">{app.eduHonors}</td>
                       <td className="px-4 py-3">{app.work_trainings}</td>
@@ -1069,7 +1092,7 @@ export default function AdminApplications({ jobs }) {
               isOpen: true,
               type: "Schedule",
               app: appData,
-              // 🚀 Reset the object when clicking via modal button
+              //  Reset the object when clicking via modal button
               data: { date: "", writtenTime: "", f2fTime: "" },
             })
           }
@@ -1077,7 +1100,7 @@ export default function AdminApplications({ jobs }) {
         />
       )}
 
-      {/* 🚀 THE NEW SMART MODAL WITH SPLIT TIME INPUTS */}
+      {/*  THE NEW SMART MODAL WITH SPLIT TIME INPUTS */}
       {emailAction.isOpen &&
         emailAction.app &&
         (() => {
@@ -1114,7 +1137,6 @@ export default function AdminApplications({ jobs }) {
 
                 {config.hasInput ? (
                   <div className="mb-6">
-                    {/* 🚀 Render MULTI-SCHEDULE Form */}
                     {config.inputType === "schedule-multi" ? (
                       <div className="space-y-4">
                         <div>

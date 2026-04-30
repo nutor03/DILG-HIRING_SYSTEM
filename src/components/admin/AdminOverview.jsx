@@ -22,19 +22,19 @@ export default function AdminOverview({ jobs, onNav }) {
   }, {});
 
   return (
-    <div className="min-h-screen bg-gray-50">
+    <div className="min-h-screen bg-gray-50 ">
       <div className="bg-[#0A1F5C] px-8 py-10 border-b-4 border-[#FFD000]">
         <div className="max-w-6xl mx-auto">
-          <p className="text-[#FFD000]/60 text-[12px] font-bold tracking-[3px] uppercase mb-1">
+          <p className="text-[#FFD000]/60 text-[12px] md:text-[12px] xl:text-[11px] font-bold tracking-[3px] uppercase mb-1">
             Admin Dashboard
           </p>
           <h1
-            className="font-black text-[42px] text-white uppercase leading-none"
+            className="font-black text-[42px] md:text-[45px] xl:text-[50px] text-white uppercase leading-none"
             style={{ fontFamily: "'Barlow Condensed',sans-serif" }}
           >
             Overview
           </h1>
-          <p className="text-white/40 text-[13px] mt-1">
+          <p className="text-white/40 text-[13px] md:text-[12px] xl:text-[11px] mt-1">
             DILG-CARAGA Careers Management System
           </p>
         </div>

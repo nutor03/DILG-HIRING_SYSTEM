@@ -178,7 +178,7 @@ export default function App() {
 
       {/* NAVBAR */}
       <nav
-        className={`border-b-[5px] sticky top-0 z-50 shadow-md flex items-center justify-between px-6 md:px-10 h-[72px] ${isAdmin ? "bg-[#0A1F5C] border-[#FFD000]" : "bg-[#FFD000] border-[#CC1B1B]"}`}
+        className={`border-b-[5px] sticky top-0 z-50 shadow-md flex items-center justify-between px-6 md:px-10 h-[72px] md:px-4 md:py-2 xl:px-3 xl:py-1.5 ${isAdmin ? "bg-[#0A1F5C] border-[#FFD000]" : "bg-[#FFD000] border-[#CC1B1B]"}`}
       >
         <button
           onClick={() => setPage(isAdmin ? "admin" : "home")}
@@ -190,20 +190,20 @@ export default function App() {
             className="w-12 h-12 rounded-lg object-contain"
           />
           <div className="leading-none text-left">
-            <h1
-              className={`font-bold text-2xl tracking-wide uppercase ${isAdmin ? "text-[#FFD000]" : "text-[#0A1F5C]"}`}
-              style={{ fontFamily: "'Barlow Condensed',sans-serif" }}
-            >
-              DEPARTMENT OF THE INTERIOR AND LOCAL GOVERNMENT
-            </h1>
-            <span
-              className={`block text-[10px] font-bold tracking-[3px] uppercase mt-0.5 ${isAdmin ? "text-[#CC1B1B]" : "text-[#CC1B1B]"}`}
-            >
-              {isAdmin ? "Admin Dashboard" : "Careers Portal"}
-            </span>
-          </div>
+          <h1
+            className={`font-bold tracking-wide uppercase transition-all duration-300 text-sm sm:text-base md:text-xl  ${isAdmin ? "text-[#FFD000]" : "text-[#0A1F5C]"}`}
+            style={{ fontFamily: "'Barlow Condensed',sans-serif" }}
+          >
+            Department of the Interior and Local Government - Caraga
+          </h1>
+          <span
+            className={`block font-bold tracking-[3px] uppercase mt-0.5 transition-all duration-300 text-[9px] sm:text-[10px]  ${isAdmin ? "text-[#CC1B1B]" : "text-[#CC1B1B]"}`}
+          >
+            {isAdmin ? "Admin Dashboard" : "Careers Portal"}
+          </span>
+        </div>
         </button>
-        <div className="flex items-center gap-3">
+        <div className="flex items-center gap-2 md:gap-3">
           {currentUser ? (
             <>
               {isAdmin ? (
@@ -212,7 +212,8 @@ export default function App() {
                     <button
                       key={p}
                       onClick={() => setPage(p)}
-                      className={`hidden md:flex items-center gap-1.5 px-4 py-2 rounded font-bold text-[12px] tracking-wider uppercase transition-all cursor-pointer border-2 ${page === p ? "bg-[#FFD000] text-[#0A1F5C] border-[#FFD000]" : "text-[#FFD000] border-[#FFD000]/40 hover:border-[#FFD000]"}`}
+                     
+                      className={`hidden md:flex items-center gap-1.5 px-3 py-1.5 md:px-4 md:py-2 xl:px-3 xl:py-1.5 rounded font-bold uppercase transition-all cursor-pointer border-2 text-[11px] md:text-[12px] xl:text-[11px] ${page === p ? "bg-[#FFD000] text-[#0A1F5C] border-[#FFD000]" : "text-[#FFD000] border-[#FFD000]/40 hover:border-[#FFD000]"}`}
                     >
                       {p === "admin" && <BarChart2 size={13} />}
                       {p === "jobs" && <Briefcase size={13} />}
@@ -228,37 +229,41 @@ export default function App() {
               ) : (
                 <button
                   onClick={() => setPage("tracker")}
-                  className={`hidden md:flex items-center gap-2 px-5 py-2.5 rounded font-bold text-[13px] tracking-wider uppercase transition-all duration-200 border-2 cursor-pointer ${page === "tracker" ? "bg-[#0A1F5C] text-[#FFD000] border-[#0A1F5C]" : "bg-white/40 text-[#0A1F5C] border-[#0A1F5C] hover:bg-[#0A1F5C] hover:text-[#FFD000]"}`}
+                  // Responsive scaling for 'My Applications' button
+                  className={`hidden md:flex items-center gap-2 px-3 py-2 md:px-5 md:py-2.5 xl:px-4 xl:py-2 rounded font-bold uppercase transition-all duration-200 border-2 cursor-pointer text-[11px] md:text-[13px] xl:text-[12px] ${page === "tracker" ? "bg-[#0A1F5C] text-[#FFD000] border-[#0A1F5C]" : "bg-white/40 text-[#0A1F5C] border-[#0A1F5C] hover:bg-[#0A1F5C] hover:text-[#FFD000]"}`}
                 >
-                  <ClipboardList size={15} />
+                  <ClipboardList size={14} className="md:w-[15px] md:h-[15px]" />
                   My Applications
                   {applications.length > 0 && (
-                    <span className="bg-[#CC1B1B] text-white text-[10px] font-black rounded-full w-5 h-5 flex items-center justify-center">
+                    <span className="bg-[#CC1B1B] text-white text-[9px] md:text-[10px] font-black rounded-full w-4 h-4 md:w-5 md:h-5 flex items-center justify-center">
                       {applications.length}
                     </span>
                   )}
                 </button>
               )}
               <div
-                className={`flex items-center gap-2 px-4 py-2 rounded font-bold text-[13px] tracking-wider uppercase ${isAdmin ? "bg-[#FFD000] text-[#0A1F5C]" : "bg-[#0A1F5C] text-[#FFD000]"}`}
+                // Responsive scaling for Name display
+                className={`flex items-center gap-2 px-3 py-1.5 md:px-4 md:py-2 rounded font-bold uppercase text-[11px] md:text-[13px] xl:text-[12px] ${isAdmin ? "bg-[#FFD000] text-[#0A1F5C]" : "bg-[#0A1F5C] text-[#FFD000]"}`}
               >
-                {isAdmin ? <Shield size={14} /> : <User size={14} />}
+                {isAdmin ? <Shield size={13} className="md:w-[14px] md:h-[14px]" /> : <User size={13} className="md:w-[14px] md:h-[14px]" />}
                 <span className="hidden md:block">{currentUser.firstName}</span>
               </div>
               <button
                 onClick={handleLogout}
-                className="flex items-center gap-1.5 bg-[#CC1B1B] text-white px-4 py-2.5 rounded font-bold text-[13px] tracking-wider uppercase hover:opacity-80 transition-all cursor-pointer"
+                // Responsive scaling for Logout button
+                className="flex items-center gap-1.5 bg-[#CC1B1B] text-white px-3 py-1.5 md:px-4 md:py-2.5 xl:px-3 xl:py-2 rounded font-bold uppercase hover:opacity-80 transition-all cursor-pointer text-[11px] md:text-[13px] xl:text-[12px]"
               >
-                <LogOut size={14} />
+                <LogOut size={13} className="md:w-[14px] md:h-[14px]" />
                 <span className="hidden md:block">Logout</span>
               </button>
             </>
           ) : (
             <button
               onClick={() => setAuthModal("login")}
-              className="flex items-center gap-2 bg-[#0A1F5C] text-[#FFD000] px-7 py-2.5 rounded font-bold text-[15px] tracking-wider uppercase hover:bg-[#CC1B1B] hover:text-white transition-all duration-200 cursor-pointer"
+              // Responsive scaling for Login button
+              className="flex items-center gap-2 bg-[#0A1F5C] text-[#FFD000] px-5 py-2 md:px-7 md:py-2.5 xl:px-5 xl:py-2 rounded font-bold uppercase hover:bg-[#CC1B1B] hover:text-white transition-all duration-200 cursor-pointer text-[13px] md:text-[15px] xl:text-[13px]"
             >
-              <LogIn size={16} />
+              <LogIn size={15} className="md:w-[16px] md:h-[16px]" />
               Log In
             </button>
           )}
@@ -474,65 +479,71 @@ export default function App() {
       {/* NEW APPLICATION FORM MODAL */}
       {selectedJob && !isAdmin && isApplying && !showSuccess && (
         <ApplicationModal
-          job={selectedJob}
-          currentUser={currentUser}
-          onClose={closeModal}
-          onSubmit={async (collectedData) => {
-            try {
-              // 1. Upload the file first (if they attached one)
-              let fileUrl = "";
-              if (collectedData.workData.workExpFile) {
-                fileUrl = await uploadApplicantDocument(
-                  collectedData.workData.workExpFile,
-                );
-              }
-
-              // 2. Map through the array of objects to create flat arrays for Supabase
-              const parsedWorkEmployer = collectedData.workData.experiences.map(exp => exp.work_employer_name);
-              const parsedWorkPosition = collectedData.workData.experiences.map(exp => exp.work_position);
-              const parsedWorkDates = collectedData.workData.experiences.map(exp => exp.work_dates);
-              const parsedWorkSkills = collectedData.workData.experiences.map(exp => exp.work_skills);
-
-              const app = {
-                jobId: selectedJob.id,
-                jobTitle: selectedJob.title,
-                location: selectedJob.location,
-                category: selectedJob.category,
-                applicant_email: currentUser.email,
-                applicant_name:
-                  `${collectedData.formData.firstName} ${collectedData.formData.mi} ${collectedData.formData.lastName}`.trim(),
-                applicant_age: collectedData.formData.age,
-                applicant_address: collectedData.formData.address,
-                applicant_status: collectedData.formData.status,
-                applicant_sex: collectedData.formData.sex,
-                applicant_contact: collectedData.formData.contact,
-                edu_school: collectedData.eduData.school,
-                edu_course: collectedData.eduData.course,
-                edu_year: collectedData.eduData.year,
-                edu_honors: collectedData.eduData.honors,
-                edu_grad_school: collectedData.eduData.gradSchool,
-                edu_grad_year: collectedData.eduData.gradYear,
-                work_skills: parsedWorkSkills,
-                work_position: parsedWorkPosition,
-                work_dates: parsedWorkDates,
-                work_employer_name: parsedWorkEmployer,
-                worksheet_file: fileUrl,
-                unitEarn: collectedData.eduData.unitEarn,
-              };
-              
-              console.log("Final application data to submit:", app);
-              await submitApplication(app);
-              await loadMyApplications(currentUser.email);
-
-              // Show Success Modal instead of JS Alert!
-              setIsApplying(false);
-              setShowSuccess(true);
-            } catch (e) {
-              console.error("Failed to submit application:", e);
-              alert("Submission failed. Please try again.");
+        job={selectedJob}
+        currentUser={currentUser}
+        onClose={closeModal}
+        onSubmit={async (collectedData) => {
+          try {
+            // 1. Upload the file first (if they attached one)
+            let fileUrl = "";
+            if (collectedData.workData.workExpFile) {
+              fileUrl = await uploadApplicantDocument(
+                collectedData.workData.workExpFile,
+              );
             }
-          }}
-        />
+
+            // 2. Filter out blank experiences to prevent [""] bugs
+            const validExperiences = collectedData.workData.experiences.filter(
+              (exp) => exp.work_employer_name.trim() !== "" || exp.work_position.trim() !== ""
+            );
+
+            // 3. Map the valid data and join it into a single clean string
+            const finalWorkEmployer = validExperiences.map(exp => exp.work_employer_name).filter(Boolean).join(" | ") || null;
+            const finalWorkPosition = validExperiences.map(exp => exp.work_position).filter(Boolean).join(" | ") || null;
+            const finalWorkDates = validExperiences.map(exp => exp.work_dates).filter(Boolean).join(" | ") || null;
+            const finalWorkSkills = validExperiences.map(exp => exp.work_skills).filter(Boolean).join(" | ") || null;
+
+            const app = {
+              jobId: selectedJob.id,
+              jobTitle: selectedJob.title,
+              location: selectedJob.location,
+              category: selectedJob.category,
+              applicant_email: currentUser.email,
+              applicant_name:
+                `${collectedData.formData.firstName} ${collectedData.formData.mi} ${collectedData.formData.lastName}`.trim(),
+              applicant_age: collectedData.formData.age,
+              applicant_address: collectedData.formData.address,
+              applicant_status: collectedData.formData.status,
+              applicant_sex: collectedData.formData.sex,
+              applicant_contact: collectedData.formData.contact,
+              edu_school: collectedData.eduData.school,
+              edu_course: collectedData.eduData.course,
+              edu_year: collectedData.eduData.year,
+              edu_honors: collectedData.eduData.honors,
+              eligibility: collectedData.eduData.eligibility,
+              edu_grad_school: collectedData.eduData.gradSchool,
+              edu_grad_year: collectedData.eduData.gradYear,
+              unitEarn: collectedData.eduData.unitEarn,
+              work_skills: finalWorkSkills,
+              work_position: finalWorkPosition,
+              work_dates: finalWorkDates,
+              work_employer_name: finalWorkEmployer,
+              worksheet_file: fileUrl,
+            };
+            
+            console.log("Final application data to submit:", app);
+            await submitApplication(app);
+            await loadMyApplications(currentUser.email);
+
+            // Show Success Modal instead of JS Alert!
+            setIsApplying(false);
+            setShowSuccess(true);
+          } catch (e) {
+            console.error("Failed to submit application:", e);
+            alert("Submission failed. Please try again.");
+          }
+        }}
+      />
       )}
 
       {/* NEW SUCCESS MODAL */}
