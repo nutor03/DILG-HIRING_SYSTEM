@@ -501,7 +501,7 @@ export default function App() {
             const finalWorkEmployer = validExperiences.map(exp => exp.work_employer_name).filter(Boolean).join(" | ") || null;
             const finalWorkPosition = validExperiences.map(exp => exp.work_position).filter(Boolean).join(" | ") || null;
             const finalWorkDates = validExperiences.map(exp => exp.work_dates).filter(Boolean).join(" | ") || null;
-            const finalWorkSkills = validExperiences.map(exp => exp.work_skills).filter(Boolean).join(" | ") || null;
+
 
             const app = {
               jobId: selectedJob.id,
@@ -524,7 +524,8 @@ export default function App() {
               edu_grad_school: collectedData.eduData.gradSchool,
               edu_grad_year: collectedData.eduData.gradYear,
               unitEarn: collectedData.eduData.unitEarn,
-              work_skills: finalWorkSkills,
+              work_skills: collectedData.workData.work_skills,
+              work_trainings: collectedData.workData.work_trainings,
               work_position: finalWorkPosition,
               work_dates: finalWorkDates,
               work_employer_name: finalWorkEmployer,

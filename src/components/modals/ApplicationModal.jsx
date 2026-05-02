@@ -13,6 +13,8 @@ import {
   Edit3,
 } from "lucide-react";
 
+import { supabase } from "../../supabaseClient";
+
 export default function ApplicationModal({
   job,
   currentUser,
@@ -22,6 +24,8 @@ export default function ApplicationModal({
   const [step, setStep] = useState(1);
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [errors, setErrors] = useState({}); 
+
+  
 
   const validateStep = (currentStep) => {
     let newErrors = {};
@@ -74,7 +78,7 @@ export default function ApplicationModal({
   // Replace your current workData state with this:
   const [workData, setWorkData] = useState({
     experiences: [
-      { work_employer_name: "", work_position: "", work_dates: "", work_skills: "" },
+      { work_employer_name: "", work_position: "", work_dates: "", work_skills: "", work_trainings: "" },
     ],
     appLetterFile: null,
     appLetterName: "",
@@ -96,7 +100,7 @@ export default function ApplicationModal({
       ...workData,
       experiences: [
         ...workData.experiences,
-        { work_employer_name: "", work_position: "", work_dates: "", work_skills: "" },
+        { work_employer_name: "", work_position: "", work_dates: "", work_skills: "", work_trainings: "" },
       ],
     });
   };
@@ -132,8 +136,32 @@ const handleNext = () => {
   const handleSubmit = async () => {
     console.log("Submitting application with data:", { formData, eduData, workData });
     setIsSubmitting(true);
-    await onSubmit({ formData, eduData, workData });
-    setIsSubmitting(false);
+    
+    try {
+      // 1. Submit the application data to the database (via your parent component)
+      await onSubmit({ formData, eduData, workData });
+
+      // 2. Trigger the Resend email notification
+      const { data, error } = await supabase.functions.invoke('send-notification', {
+        body: { 
+          to_name: formData.firstName, 
+          to_email: formData.email, 
+          job_title: job.title 
+        }
+      });
+
+      if (error) {
+        // If the email fails, we log it, but the application itself was already saved above.
+        console.error("Failed to send notification email:", error);
+      } else {
+        console.log("Notification email sent successfully!", data);
+      }
+
+    } catch (error) {
+      console.error("Error during application submission:", error);
+    } finally {
+      setIsSubmitting(false);
+    }
   };
 
   const ReviewRow = ({ label, value }) => (
@@ -540,18 +568,11 @@ const handleNext = () => {
                       </div>
                     </div>
                   </div>
-                  <div>
-                    <label className={labelCls}>Relevant Skills & Trainings</label>
-                    <textarea
-                      className={`${inputCls} h-20 resize-none`}
-                      value={exp.work_skills}
-                      onChange={(e) => handleExpChange(index, "work_skills", e.target.value)}
-                      placeholder="List your technical skills and relevant seminars attended..."
-                    />
-                  </div>
+                 
                 </div>
               ))}
 
+              
               {/* The Add Experience Button */}
               <button
                 onClick={addExperience}
@@ -559,6 +580,38 @@ const handleNext = () => {
               >
                 + Add Another Experience
               </button>
+
+              <div className="p-5 border-2 border-gray-100 rounded-lg bg-gray-50/50">
+                <h3 className="text-[#0A1F5C] font-black text-[14px] uppercase tracking-wider mb-4 border-b-2 border-[#FFD000] inline-block pb-1">
+                  Training & Skills
+                </h3>
+                <div className="mb-4">
+                    <label className={labelCls}>Training</label>
+                    <textarea
+                      className={inputCls}
+                      value={workData.work_trainings}
+                      onChange={(e) =>
+                        setWorkData({ ...workData, work_trainings: e.target.value })
+                      }
+                      placeholder="Training attended related to the position (e.g. IT Training, Leadership Seminar, etc.)"
+                    />
+                  </div>
+                  <div className="mb-4">
+                    <label className={labelCls}>Skills</label>
+                    <textarea
+                      className={inputCls}
+                      value={workData.work_skills }
+                      onChange={(e) =>
+                        setWorkData({ ...workData, work_skills: e.target.value })
+                      }
+                      placeholder="List your technical skills and relevant seminars attended..."
+                    />
+                  </div>
+                
+                
+              </div>
+             
+
 
               {/* --- DOCUMENT UPLOADS --- */}
 
@@ -713,11 +766,15 @@ const handleNext = () => {
                           value={exp.work_employer_name}
                         />
                         <ReviewRow label="Inclusive Dates" value={exp.work_dates} />
-                        <ReviewRow label="Relevant Skills & Trainings" value={exp.work_skills} />
                       </div>
                     </div>
                   ))}
                   
+                  <div className="p-4 bg-white space-y-4">
+                    <ReviewRow label="Trainings" value={workData.work_trainings} />
+                    <ReviewRow label="Skills" value={workData.work_skills} />
+                  </div>
+
                   <div className="pt-2 space-y-1">
                     <ReviewRow label="Document Requirements" value={workData.workExpFileName} />
                   </div>

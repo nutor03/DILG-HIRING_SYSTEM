@@ -60,6 +60,18 @@ const ACTION_MODAL_CONFIG = {
     buttonText: "Approve & Send Email",
     buttonColor: "bg-green-500 hover:bg-green-600",
   },
+  "Recommend": {
+    icon: Users, 
+    color: "text-purple-500",
+    bg: "bg-purple-100",
+    border: "border-purple-500",
+    title: "Recommend Alternative Role",
+    desc: "Suggest a different position that better matches their qualifications.",
+    buttonText: "Recommend & Send Email",
+    buttonColor: "bg-purple-500 hover:bg-purple-600",
+    hasInput: true,
+    inputType: "text", 
+  },
   "Rejected w/ Reason": {
     icon: Mail,
     color: "text-red-500",
@@ -90,7 +102,7 @@ const ACTION_MODAL_CONFIG = {
     buttonText: "Save & Send Invitation",
     buttonColor: "bg-[#3B82F6] hover:bg-blue-600",
     hasInput: true,
-    inputType: "schedule-multi", // 🚀 Updated to custom input type
+    inputType: "schedule-multi", 
   },
 };
 
@@ -170,7 +182,7 @@ function ApplicantModal({
               value={
                 [
                   "Approved / Hired",
-                  "Recommend",
+                  "Recommended for another position",
                   "Rejected w/ Reason",
                   "Rejected w/ No Reason",
                 ].includes(app.status)
@@ -182,7 +194,7 @@ function ApplicantModal({
             >
               {![
                 "Approved / Hired",
-                "Recommend",
+                "Recommended for another position",
                 "Rejected w/ Reason",
                 "Rejected w/ No Reason",
               ].includes(app.status) && (
@@ -217,7 +229,6 @@ function ApplicantModal({
                   Interview Scheduled For
                 </p>
                 <p className="text-white font-semibold text-[14px] leading-tight">
-                  {/* 🚀 Graceful decoding of the multi-schedule JSON */}
                   {(() => {
                     try {
                       const parsed = JSON.parse(app.interviewDate);
@@ -240,7 +251,6 @@ function ApplicantModal({
                         </>
                       );
                     } catch (e) {
-                      // Fallback for older single-date entries
                       return new Date(app.interviewDate).toLocaleString(
                         "en-PH",
                         {
@@ -297,9 +307,14 @@ function ApplicantModal({
               <Field label="Inclusive Dates" value={app.workDates} />
               <Field label="Employer Name" value={app.workEmployerName} />
             </div>
-           
+
+          </Section>
+          <Section title="Training & Skills">
             <div className="mt-3">
-              <Field label="Relevant Training and Skills" value={app.workSkills} />
+              <Field label=" Training " value={app.workTrainings} />
+            </div>
+            <div className="mt-3">
+              <Field label=" Skills " value={app.workSkills} />
             </div>
           </Section>
 
@@ -517,16 +532,17 @@ export default function AdminApplications({ jobs }) {
     if (
       [
         "Approved / Hired",
-        "Recommend",
+        "Recommended for another position",
         "Rejected w/ Reason",
         "Rejected w/ No Reason",
         "Interview Scheduled",
       ].includes(newStatus)
     ) {
       const actionType =
-        newStatus === "Interview Scheduled" ? "Schedule" : newStatus;
+        newStatus === "Interview Scheduled" ? "Schedule" 
+        : newStatus === "Recommended for another position" ? "Recommend" 
+        : newStatus;
 
-      // 🚀 For "Schedule", initialize the object structure
       const initialData =
         actionType === "Schedule"
           ? { date: "", writtenTime: "", f2fTime: "" }
@@ -578,6 +594,12 @@ export default function AdminApplications({ jobs }) {
         functionName = "send-rejection";
         bodyPayload.rejection_reason = data;
         await updateApplicationStatus(app.id, type);
+      } else if (type === "Recommend") {
+        if (!data.trim()) return alert("Please provide the recommended job title.");
+        functionName = "send-recommendation";
+        bodyPayload.recommended_role = data;
+        finalStatus = "Recommended for another position";
+        await updateApplicationStatus(app.id, finalStatus);
       } else if (type === "Rejected w/ No Reason") {
         functionName = "send-generic-rejection";
         await updateApplicationStatus(app.id, type);
@@ -598,16 +620,13 @@ export default function AdminApplications({ jobs }) {
           day: "numeric",
         });
 
-        // Send the three distinct variables to match your new HTML template!
         bodyPayload.interview_date = formattedDate;
         bodyPayload.written_time = formatTime(writtenTime);
         bodyPayload.f2f_time = formatTime(f2fTime);
 
         finalStatus = "Interview Scheduled";
-
         finalDataToSave = JSON.stringify({ date, writtenTime, f2fTime });
 
-        // Convert date to a valid ISO timestamp for the DB column
         const isoTimestamp = new Date(
           `${date}T${writtenTime}:00`,
         ).toISOString();
@@ -709,14 +728,14 @@ export default function AdminApplications({ jobs }) {
       "Educational Attainment (College Course/School/Year Graduated)",
       "Graduate Studies (School & Year Graduated)",
       "Academic Honors Received",
-      "Relevant Trainings: ",
+      "eligibility",
+      "Trainings: ",
       "Skills",
       "Work Position",
       "Work Dates",
       "Employer Name",
     ];
 
-    // 1. Group applications by email (fallback to name) to merge duplicate applicants
     const groupedApps = Object.values(
       filtered.reduce((acc, app) => {
         const key = app.applicantEmail || app.applicantName || "unknown";
@@ -735,39 +754,36 @@ export default function AdminApplications({ jobs }) {
       }, {})
     );
 
-    // 2. Map the grouped data to rows
     const rows = [
       headers,
       ...groupedApps.map((a) => {
         return [
-          a.mergedJobTitles.join(", ") || "",
-          a.applicantName || "",
-          a.applicantAddress || "",
-          a.applicantStatus || "",
-          a.applicantAge || "",
-          a.applicantSex || "",
-          a.applicantContact || "",
-          a.applicantEmail || "",        
-          [a.eduCourse, a.eduYear].filter(Boolean).join(" / ") || "",
-          [a.eduGradSchool, a.eduGradYear, a.unitEarn].filter(Boolean).join(" / ") || "",
-          a.eduHonors || "",
-          a.workTrainings || a.work_trainings || "",
-          a.workSkills || a.work_skills || "",
-          a.workPosition || a.work_position || "",
-          a.workDates || a.work_dates || "",
-          a.workEmployerName || a.work_employer_name || "",
+          a.mergedJobTitles.join(", ") || "n/a",
+          a.applicantName || "n/a",
+          a.applicantAddress || "n/a",
+          a.applicantStatus || "n/a",
+          a.applicantAge || "n/a",
+          a.applicantSex || "n/a",
+          a.applicantContact || "n/a",
+          a.applicantEmail || "n/a",
+          [a.eduCourse, a.eduYear].filter(Boolean).join(" / ") || "n/a",
+          [a.eduGradSchool, a.eduGradYear, a.unitEarn].filter(Boolean).join(" / ") || "n/a",
+          a.eduHonors || "n/a",
+          a.eligibility || "n/a",
+          a.workTrainings || a.work_trainings || "n/a",
+          a.workSkills || a.work_skills || "n/a",
+          a.workPosition || a.work_position || "n/a",
+          a.workDates || a.work_dates || "n/a",
+          a.workEmployerName || a.work_employer_name || "n/a",
         ];
       }),
     ];
 
-    // 3. Generate the Excel Workbook and Worksheet
     const worksheet = XLSX.utils.aoa_to_sheet(rows);
     const workbook = XLSX.utils.book_new();
     
-    // Append the worksheet to the workbook (naming the tab "Applicants")
     XLSX.utils.book_append_sheet(workbook, worksheet, "Applicants");
 
-    // 4. Dynamic filename based on filters
     let exportName = "DILG_All_Applicants.xlsx";
     if (activePosition !== "All") {
       exportName = `DILG_${activePosition.replace(/\s+/g, '_')}_Applicants.xlsx`;
@@ -775,7 +791,6 @@ export default function AdminApplications({ jobs }) {
       exportName = `DILG_Search_${searchQ.replace(/\s+/g, '_')}.xlsx`;
     }
 
-    // 5. Trigger the download automatically
     XLSX.writeFile(workbook, exportName);
   };
 
@@ -959,7 +974,10 @@ export default function AdminApplications({ jobs }) {
                     academic honors recieved
                   </th>
                   <th className="px-4 py-3 text-[11px] font-bold uppercase tracking-wider">
-                    Relevant training
+                    Eligibility
+                  </th>
+                  <th className="px-4 py-3 text-[11px] font-bold uppercase tracking-wider">
+                    Training
                   </th>
                   <th className="px-4 py-3 text-[11px] font-bold uppercase tracking-wider">
                     skills
@@ -1047,15 +1065,16 @@ export default function AdminApplications({ jobs }) {
                       </td>
                       <td className="px-4 py-3">
                         {app.eduGradSchool} / {app.eduGradYear} /{" "}
-                        {app.earnUnit ? `${app.earnUnit} units` : ""}
+                        {app.unitEarn ? `${app.unitEarn} units` : ""}
                       </td>
                       <td className="px-4 py-3">{app.eduHonors}</td>
-                      <td className="px-4 py-3">{app.work_trainings}</td>
-                      <td className="px-4 py-3">{app.work_skills}</td>
-                      <td className="px-4 py-3">{app.work_position}</td>
-                      <td className="px-4 py-3">{app.work_dates}</td>
+                      <td className="px-4 py-3">{app.eligibility || "n/a"}</td>
+                      <td className="px-4 py-3">{app.workTrainings || "n/a"}</td>
+                      <td className="px-4 py-3">{app.workSkills || "n/a"}</td>
+                      <td className="px-4 py-3">{app.workPosition || "n/a"}</td>
+                      <td className="px-4 py-3">{app.workDates || "n/a"}</td>
 
-                      <td className="px-4 py-3">{app.work_employer_name}</td>
+                      <td className="px-4 py-3">{app.workEmployerName || "n/a"}</td>
                     </tr>
                   );
                 })}
@@ -1092,7 +1111,6 @@ export default function AdminApplications({ jobs }) {
               isOpen: true,
               type: "Schedule",
               app: appData,
-              //  Reset the object when clicking via modal button
               data: { date: "", writtenTime: "", f2fTime: "" },
             })
           }
@@ -1100,7 +1118,6 @@ export default function AdminApplications({ jobs }) {
         />
       )}
 
-      {/*  THE NEW SMART MODAL WITH SPLIT TIME INPUTS */}
       {emailAction.isOpen &&
         emailAction.app &&
         (() => {
@@ -1199,6 +1216,24 @@ export default function AdminApplications({ jobs }) {
                           </div>
                         </div>
                       </div>
+                    ) : config.inputType === "text" ? (
+                      <>
+                        <label className="block text-[11px] font-bold tracking-widest uppercase text-[#0A1F5C] mb-1.5">
+                          Recommended Position
+                        </label>
+                        <input
+                          type="text"
+                          placeholder="e.g. IT Officer I"
+                          className={`w-full px-4 py-3 border-2 border-gray-200 rounded bg-white font-sans text-[#0A1F5C] text-[15px] outline-none transition-all focus:${config.border}`}
+                          value={emailAction.data}
+                          onChange={(e) =>
+                            setEmailAction({
+                              ...emailAction,
+                              data: e.target.value,
+                            })
+                          }
+                        />
+                      </>
                     ) : config.inputType === "textarea" ? (
                       <>
                         <label className="block text-[11px] font-bold tracking-widest uppercase text-[#0A1F5C] mb-1.5">

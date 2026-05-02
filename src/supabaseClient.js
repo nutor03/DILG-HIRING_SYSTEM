@@ -203,6 +203,7 @@ export async function submitApplication(app) {
       edu_grad_year: app.edu_grad_year,
       unitEarn: app.unitEarn,
       work_skills: app.work_skills,
+      work_trainings: app.work_trainings,
       work_position: app.work_position,
       work_dates: app.work_dates,
       work_employer_name: app.work_employer_name,
